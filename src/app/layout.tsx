@@ -14,9 +14,47 @@ const sarabun = Sarabun({
   variable: '--font-sarabun',
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+const description =
+  'ระบบ AI ช่วยประเมิน Manday จากไฟล์เสียง Requirement — ถอดเสียงเป็นข้อความ ' +
+  'แล้ววิเคราะห์เป็น Scope of Work (SOW) พร้อมประมาณการวันทำงานแยกรายโมดูล. ' +
+  'AI-powered manday estimator: turn audio requirements into a scoped, estimated SOW.';
+
 export const metadata: Metadata = {
-  title: 'AI Manday Estimator',
-  description: 'Estimate software project mandays from audio requirements using AI',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'AI Manday Estimator — ประเมิน Manday จากไฟล์เสียงด้วย AI',
+    template: '%s · AI Manday Estimator',
+  },
+  description,
+  applicationName: 'AI Manday Estimator',
+  keywords: [
+    'manday estimator', 'ประเมิน manday', 'AI estimation', 'speech to text',
+    'scope of work', 'SOW', 'project estimation', 'ประเมินงานโปรเจกต์',
+    'Whisper', 'requirement analysis',
+  ],
+  authors: [{ name: 'AI Manday Estimator' }],
+  openGraph: {
+    type: 'website',
+    locale: 'th_TH',
+    alternateLocale: 'en_US',
+    url: siteUrl,
+    siteName: 'AI Manday Estimator',
+    title: 'AI Manday Estimator — ประเมิน Manday จากไฟล์เสียงด้วย AI',
+    description,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Manday Estimator',
+    description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
