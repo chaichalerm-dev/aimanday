@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Font rendering */
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Thai characters have stacked vowels/tone marks — need generous line height */
+  body {
+    line-height: 1.75;
+  }
+
+  /* Headings: tighter tracking, heavier weight */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+
+  /* Body text: comfortable reading */
+  p, li, td, th {
+    line-height: 1.75;
+  }
+
+  /* Buttons & labels: slightly tighter */
+  button, label, input, select, textarea {
+    line-height: 1.5;
+  }
+}
+
+/* ── Print styles ──────────────────────────────────── */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 20mm;
+  }
+
+  /* Kill all transitions & animations */
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Light background for everything */
+  body {
+    background: white !important;
+    color: #111827 !important;
+  }
+
+  /* Cards: keep border, remove shadow */
+  .print-card {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 16px;
+    background: white !important;
+  }
+
+  /* Manday banner keeps its blue */
+  .print-banner {
+    background: #2563eb !important;
+    color: white !important;
+    border-radius: 12px !important;
+    break-inside: avoid;
+  }
+
+  .print-banner * { color: white !important; }
+
+  /* Tables */
+  table { border-collapse: collapse; width: 100%; }
+  th, td {
+    border: 1px solid #e5e7eb !important;
+    padding: 6px 12px !important;
+    background: white !important;
+    color: #111827 !important;
+  }
+  thead th { background: #f9fafb !important; font-weight: 600; }
+
+  /* Assumptions box */
+  .print-assumptions {
+    border: 1px solid #fcd34d !important;
+    border-radius: 8px !important;
+    background: #fffbeb !important;
+    break-inside: avoid;
+  }
+  .print-assumptions * { color: #92400e !important; }
+}
+
+/* Smooth dark mode transitions — excludes transform/opacity to avoid breaking animations */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
