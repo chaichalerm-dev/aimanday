@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { transcribeAudio } from '@/lib/whisper';
 import { checkRateLimit, rateLimitHeaders, getClientIp } from '@/lib/rateLimit';
 
+export const dynamic = 'force-dynamic';
+
 const ALLOWED_EXTENSIONS = new Set(['.mp3', '.wav', '.m4a']);
 const MAX_FILE_SIZE_MB = 25;
 

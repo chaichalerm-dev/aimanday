@@ -4,7 +4,20 @@ import { SYSTEM_PROMPT, buildUserPrompt, tryParseJSON } from '@/lib/analyzer';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit, rateLimitHeaders, getClientIp } from '@/lib/rateLimit';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// Route handler is request-only; never prerender/evaluate at build time.
+export const dynamic = 'force-dynamic';
+
+// Lazy singleton — avoid throwing at module import when GROQ_API_KEY is absent (e.g. build time).
+let groqClient: Groq | null = null;
+function getGroq(): Groq {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is not configured');
+  }
+  if (!groqClient) {
+    groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return groqClient;
+}
 
 export async function POST(request: NextRequest) {
   // Rate limit: 10 LLM analysis requests per minute per IP
@@ -35,7 +48,7 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const groqStream = await groq.chat.completions.create({
+          const groqStream = await getGroq().chat.completions.create({
             model: 'llama-3.3-70b-versatile',
             max_tokens: 4096,
             temperature: 0.1,
