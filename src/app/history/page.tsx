@@ -175,13 +175,18 @@ function getPageNumbers(current: number, total: number): (number | 'ellipsis')[]
   return result;
 }
 
+// Module-level cache — survives client-side navigation within the session.
+// Lets the page render instantly on revisit while it refreshes in the background.
+let historyCache: HistoryItem[] | null = null;
+
 export default function HistoryPage() {
   const { t, lang } = useLang();
   const { showToast } = useToast();
   const router = useRouter();
 
-  const [items, setItems] = useState<HistoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<HistoryItem[]>(historyCache ?? []);
+  // Only show the full-screen spinner on the very first load (no cache yet)
+  const [loading, setLoading] = useState(historyCache === null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -189,11 +194,16 @@ export default function HistoryPage() {
   const [page, setPage] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
     fetch('/api/history')
       .then(r => r.json())
-      .then((data: HistoryItem[]) => setItems(data))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+      .then((data: HistoryItem[]) => {
+        historyCache = data;
+        if (!cancelled) setItems(data);
+      })
+      .catch(() => { if (!cancelled && historyCache === null) setItems([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   // Reset to first page when search changes
@@ -227,6 +237,8 @@ export default function HistoryPage() {
     try {
       await fetch(`/api/history/${id}`, { method: 'DELETE' });
       setItems(prev => prev.filter(item => item.id !== id));
+      // Keep cache in sync so the next visit doesn't show the deleted item
+      if (historyCache) historyCache = historyCache.filter(item => item.id !== id);
       if (expandedId === id) setExpandedId(null);
       showToast(t.deleteSuccess);
     } catch {
