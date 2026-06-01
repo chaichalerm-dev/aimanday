@@ -19,4 +19,7 @@ model Estimation {
   modules     Json
   assumptions Json
   createdAt   DateTime @default(now())
+
+  // Index the sort field so the history list query stays fast as data grows
+  @@index([createdAt])
 }

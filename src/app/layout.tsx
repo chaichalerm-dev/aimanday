@@ -28,8 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var t = localStorage.getItem('theme');
-                if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+                // Default to LIGHT mode — only go dark if the user explicitly chose it before.
+                if (localStorage.getItem('theme') === 'dark') {
                   document.documentElement.classList.add('dark');
                 }
               } catch(e) {}
