@@ -4,6 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { BottomNav } from '@/components/BottomNav';
 
 // Sarabun: รองรับ Thai + Latin ในไฟล์เดียว, อ่านง่าย, ดูทันสมัย
 const sarabun = Sarabun({
@@ -41,7 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <ThemeProvider>
           <LanguageProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              {/* Bottom padding on mobile so content isn't hidden behind BottomNav */}
+              <div className="pb-16 md:pb-0">{children}</div>
+              <BottomNav />
+            </ToastProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

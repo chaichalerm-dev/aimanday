@@ -62,12 +62,13 @@ export async function POST(request: NextRequest) {
               data: {
                 audioName,
                 transcript,
-                sow: parsed.sow,
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                sow: parsed.sow as any,
                 mandayMin: parsed.manday_estimate.min,
                 mandayMax: parsed.manday_estimate.max,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 modules: parsed.modules as any,
-                assumptions: parsed.assumptions,
+                assumptions: parsed.assumptions as any,
+                /* eslint-enable @typescript-eslint/no-explicit-any */
               },
             }).catch(err => console.error('[analyze/stream] DB save error:', err));
           }

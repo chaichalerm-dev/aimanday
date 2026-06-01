@@ -59,19 +59,20 @@ POST /api/upload      POST /api/analyze
 **Bonus Features**
 - **Editable Transcript** — แก้ไข STT ก่อนส่ง AI (STT ไม่ perfect 100%)
 - **Streaming Response** — แสดง terminal live ขณะ AI generate (Groq streaming API)
+- **Bilingual Content** — SOW/Modules/Assumptions แสดง 2 ภาษาพร้อมกัน (หลัก + แปลตัวเล็ก)
 - **Reliability Score** — คะแนนความน่าเชื่อถือ 0–100 พร้อม tooltip breakdown
 - **Audio Preview Player** — เล่น/หยุด/seek ไฟล์เสียงก่อนถอดเสียง
-- **History Page** — ดูประวัติการประเมินทั้งหมด
-- **Search & Pagination** — ค้นหาตามชื่อไฟล์ + paginate 8 รายการ/หน้า
+- **History Page** — ดูประวัติการประเมินทั้งหมด ค้นหา + แบ่งหน้า (5 รายการ/หน้า)
+- **History Detail Page** — คลิกชื่อไฟล์เปิดหน้ารายละเอียดเต็มแยกต่อ item (`/history/[id]`)
 - **Delete History** — ลบรายการพร้อม inline confirm
 - **Re-analyze** — โหลด transcript กลับมาวิเคราะห์ใหม่
-- **Copy JSON / Markdown** — คัดลอกผลลัพธ์ไปคลิปบอร์ด
-- **Export CSV** — ดาวน์โหลด modules table (Excel-compatible UTF-8 BOM)
-- **Print / PDF** — พิมพ์หรือ save as PDF (standalone HTML ใน tab ใหม่)
+- **Export Menu** — dropdown รวม Copy (JSON/Markdown), Download (JSON/Markdown/CSV), Print/PDF
+- **Print / PDF** — พิมพ์หรือ save as PDF
 - **Toast Notifications** — แจ้งเตือน copy/export/delete พร้อม animation
 - **Dark / Light Mode** — sync กับ system preference + localStorage
 - **Thai / English UI** — สลับภาษาได้ทันที ทุก label
-- **Responsive** — ใช้งานได้บนทุกขนาดหน้าจอ
+- **Guide Page** — หน้าวิธีใช้งานครบ + ติดต่อผู้พัฒนาผ่าน LINE OA
+- **Responsive + Bottom Nav** — fixed header + bottom tab bar สไตล์แอปบนมือถือ
 - **Rate Limiting** — 10 req/min ต่อ IP (upload + analyze) พร้อม headers
 
 ---
@@ -196,10 +197,25 @@ Content-Type: application/json
 Body: { "transcript": "...", "audioName": "meeting.mp3" }
 → text/plain stream → valid JSON when complete
 ```
+Every text field is returned bilingual, e.g.:
+```json
+{
+  "sow": [{ "th": "ระบบล็อกอิน", "en": "Login system" }],
+  "manday_estimate": { "min": 20, "max": 30 },
+  "modules": [{ "name": { "th": "...", "en": "..." }, "description": { "th": "...", "en": "..." }, "manday": 5 }],
+  "assumptions": [{ "th": "...", "en": "..." }]
+}
+```
+(Legacy records may store fields as plain strings — the UI handles both.)
 
 **`GET /api/history`**
 ```
 → EstimationRecord[] (latest 200, sorted by createdAt desc)
+```
+
+**`GET /api/history/:id`**
+```
+→ single EstimationRecord (404 if not found)
 ```
 
 **`DELETE /api/history/:id`**
@@ -214,34 +230,40 @@ Body: { "transcript": "...", "audioName": "meeting.mp3" }
 ```
 src/
 ├── app/
-│   ├── page.tsx                   # Main page — upload/transcript/result
-│   ├── layout.tsx                 # Root layout + providers
+│   ├── page.tsx                   # Main page — upload → transcript → stream → result
+│   ├── layout.tsx                 # Root layout + providers + BottomNav
 │   ├── globals.css                # Tailwind + print CSS
+│   ├── guide/page.tsx             # Usage guide + LINE OA contact
+│   ├── history/
+│   │   ├── page.tsx               # History list + search + pagination (5/page) + per-item export
+│   │   └── [id]/page.tsx          # Full detail page per item (reuses ResultCard)
 │   └── api/
 │       ├── upload/route.ts        # STT + rate limit + file size validate
 │       ├── analyze/route.ts       # LLM streaming + DB save + rate limit
 │       └── history/
 │           ├── route.ts           # GET history list
-│           └── [id]/route.ts      # DELETE history item
+│           └── [id]/route.ts      # GET single + DELETE history item
 ├── components/
-│   ├── Header.tsx                 # Nav + TH/EN toggle + dark mode
+│   ├── Header.tsx                 # Fixed header + nav + TH/EN + dark mode + logo→home
+│   ├── BottomNav.tsx              # Mobile/tablet bottom tab bar
 │   ├── UploadZone.tsx             # Drag & drop upload
 │   ├── AudioPreview.tsx           # Custom audio player
-│   ├── ResultCard.tsx             # SOW / Manday / Modules + Copy/Export/Print
-│   └── Toast.tsx                  # (via ToastContext)
+│   ├── ResultCard.tsx             # SOW / Manday / Modules + ExportMenu + Reliability
+│   ├── ExportMenu.tsx             # Portal dropdown: Copy / Download / Print
+│   └── Bilingual.tsx              # Renders text in both languages
 ├── contexts/
 │   ├── ThemeContext.tsx            # Dark/Light mode
 │   ├── LanguageContext.tsx         # TH/EN i18n
 │   └── ToastContext.tsx            # Toast notifications
-├── lib/
-│   ├── prisma.ts                  # Prisma singleton
-│   ├── whisper.ts                 # Groq Whisper helper
-│   ├── analyzer.ts                # Prompt + JSON parser + retry
-│   ├── reliability.ts             # Confidence score calculation
-│   ├── rateLimit.ts               # In-memory sliding window
-│   └── i18n.ts                    # Thai + English translations
-└── app/history/
-    └── page.tsx                   # History list + search + pagination
+└── lib/
+    ├── prisma.ts                  # Prisma singleton
+    ├── whisper.ts                 # Groq Whisper helper
+    ├── analyzer.ts                # Prompt + JSON parser + retry + types
+    ├── reliability.ts             # Confidence score calculation
+    ├── rateLimit.ts               # In-memory sliding window
+    ├── bilingual.ts               # pickText / plainText (bilingual helpers)
+    ├── download.ts                # JSON/Markdown/CSV download helpers
+    └── i18n.ts                    # Thai + English translations
 prisma/
 └── schema.prisma
 ```
@@ -320,19 +342,20 @@ POST /api/upload      POST /api/analyze
 **Bonus Features**
 - **Editable Transcript** — correct STT errors before AI analysis
 - **Streaming Response** — live terminal output while AI generates
+- **Bilingual Content** — SOW/Modules/Assumptions shown in both languages (primary + small translation)
 - **Reliability Score** — 0–100 confidence score with hover breakdown
 - **Audio Preview Player** — play/pause/seek before transcribing
-- **History Page** — full list of past estimations
-- **Search & Pagination** — search by filename, 8 items/page, smart page numbers
+- **History Page** — list of past estimations with search & pagination (5 items/page)
+- **History Detail Page** — click a filename to open a dedicated full detail page (`/history/[id]`)
 - **Delete History** — with inline confirmation
 - **Re-analyze** — reload any past transcript back to the editor
-- **Copy JSON / Markdown** — one-click clipboard export
-- **Export CSV** — modules table with Excel UTF-8 BOM
-- **Print / PDF** — standalone styled HTML in new tab, auto-print
+- **Export Menu** — dropdown grouping Copy (JSON/Markdown), Download (JSON/Markdown/CSV), Print/PDF
+- **Print / PDF** — print or save as PDF
 - **Toast Notifications** — animated feedback for all actions
 - **Dark / Light Mode** — synced with system preference + localStorage
 - **Thai / English UI** — instant language switch, all labels translated
-- **Responsive** — works on all screen sizes
+- **Guide Page** — full usage guide + contact developer via LINE OA
+- **Responsive + Bottom Nav** — fixed header + app-style bottom tab bar on mobile
 - **Rate Limiting** — 10 req/min per IP, standard headers
 
 ---

@@ -7,21 +7,25 @@ import { Header } from '@/components/Header';
 import { useLang } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { calculateReliability } from '@/lib/reliability';
+import { downloadJson, downloadMarkdown, downloadCsv, safeBaseName } from '@/lib/download';
+import { pickText, plainText, type MaybeBilingual } from '@/lib/bilingual';
+import { ExportMenu } from '@/components/ExportMenu';
+import { Bilingual } from '@/components/Bilingual';
 import type { Module } from '@/lib/analyzer';
 
 interface HistoryItem {
   id: string;
   audioName: string;
   transcript: string;
-  sow: string[];
+  sow: MaybeBilingual[];
   mandayMin: number;
   mandayMax: number;
   modules: Module[];
-  assumptions: string[];
+  assumptions: MaybeBilingual[];
   createdAt: string;
 }
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 5;
 
 function formatDate(iso: string, lang: 'th' | 'en'): string {
   return new Date(iso).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', {
@@ -48,24 +52,24 @@ function buildItemMarkdown(item: HistoryItem, t: ReturnType<typeof import('@/con
     `# Manday Estimate: ${item.mandayMin}–${item.mandayMax} ${lang === 'th' ? 'วันทำงาน' : 'mandays'}`,
     `> ${item.audioName}`, '',
     `## ${t.scopeOfWork}`,
-    ...item.sow.map(s => `- ${s}`), '',
+    ...item.sow.map(s => `- ${plainText(s, lang)}`), '',
     `## ${t.modulesBreakdown}`,
     `| ${t.colModule} | ${t.colDescription} | ${t.colMandays} |`,
     '|---|---|---|',
-    ...item.modules.map(m => `| ${m.name} | ${m.description} | ${m.manday} |`),
+    ...item.modules.map(m => `| ${plainText(m.name, lang)} | ${plainText(m.description, lang)} | ${m.manday} |`),
     `| **${t.total}** | | **${total}** |`,
   ];
   if (item.assumptions.length > 0) {
-    lines.push('', `## ${t.assumptions}`, ...item.assumptions.map(a => `- ${a}`));
+    lines.push('', `## ${t.assumptions}`, ...item.assumptions.map(a => `- ${plainText(a, lang)}`));
   }
   return lines.join('\n');
 }
 
-function buildItemCsv(item: HistoryItem, t: ReturnType<typeof import('@/contexts/LanguageContext').useLang>['t']): string {
+function buildItemCsv(item: HistoryItem, t: ReturnType<typeof import('@/contexts/LanguageContext').useLang>['t'], lang: 'th' | 'en'): string {
   const total = item.modules.reduce((s, m) => s + m.manday, 0);
   return [
     [t.colModule, t.colDescription, t.colMandays],
-    ...item.modules.map(m => [m.name, m.description, String(m.manday)]),
+    ...item.modules.map(m => [plainText(m.name, lang), plainText(m.description, lang), String(m.manday)]),
     [t.total, '', String(total)],
   ].map(row => row.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
 }
@@ -84,6 +88,12 @@ function buildPrintHTML(
   });
   const relColor = reliabilityLevel === 'high' ? '#86efac' : reliabilityLevel === 'medium' ? '#fde047' : '#fca5a5';
   const relBg = reliabilityLevel === 'high' ? 'rgba(34,197,94,0.2)' : reliabilityLevel === 'medium' ? 'rgba(234,179,8,0.2)' : 'rgba(239,68,68,0.2)';
+
+  // Render bilingual: primary + small secondary translation
+  const bi = (v: MaybeBilingual) => {
+    const { primary, secondary } = pickText(v, lang);
+    return secondary ? `${primary}<span class="sub">${secondary}</span>` : primary;
+  };
 
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -118,6 +128,8 @@ function buildPrintHTML(
     .assump .sec-title{color:#92400e}
     .assump-item{display:flex;gap:10px;margin-bottom:7px;color:#92400e;font-size:13px}
     .assump-num{width:18px;height:18px;border-radius:50%;background:#fde68a;color:#92400e;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+    .sub{display:block;font-size:11px;color:#9ca3af;font-weight:400;margin-top:1px}
+    .assump .sub{color:#b45309}
     @media print{body{padding:0}@page{size:A4;margin:15mm 20mm}}
   </style>
 </head>
@@ -134,17 +146,17 @@ function buildPrintHTML(
 </div>
 <div class="sec">
   <div class="sec-title">${t.scopeOfWork} (${item.sow.length})</div>
-  <ul class="sow-list">${item.sow.map(s => `<li class="sow-item"><span class="sow-check">✓</span><span>${s}</span></li>`).join('')}</ul>
+  <ul class="sow-list">${item.sow.map(s => `<li class="sow-item"><span class="sow-check">✓</span><span>${bi(s)}</span></li>`).join('')}</ul>
 </div>
 <div class="sec">
   <div class="sec-title">${t.modulesBreakdown}</div>
   <table>
     <thead><tr><th>${t.colModule}</th><th>${t.colDescription}</th><th style="text-align:right">${t.colMandays}</th></tr></thead>
-    <tbody>${item.modules.map(m => `<tr><td><strong>${m.name}</strong></td><td>${m.description}</td><td style="text-align:right"><span class="badge">${m.manday}</span></td></tr>`).join('')}</tbody>
+    <tbody>${item.modules.map(m => `<tr><td><strong>${bi(m.name)}</strong></td><td>${bi(m.description)}</td><td style="text-align:right"><span class="badge">${m.manday}</span></td></tr>`).join('')}</tbody>
     <tfoot><tr><td colspan="2">${t.total}</td><td style="text-align:right"><span class="badge badge-dark">${total}</span></td></tr></tfoot>
   </table>
 </div>
-${item.assumptions.length > 0 ? `<div class="assump"><div class="sec-title">${t.assumptions}</div>${item.assumptions.map((a, i) => `<div class="assump-item"><span class="assump-num">${i + 1}</span><span>${a}</span></div>`).join('')}</div>` : ''}
+${item.assumptions.length > 0 ? `<div class="assump"><div class="sec-title">${t.assumptions}</div>${item.assumptions.map((a, i) => `<div class="assump-item"><span class="assump-num">${i + 1}</span><span>${bi(a)}</span></div>`).join('')}</div>` : ''}
 <script>window.onload=function(){window.print()}<\/script>
 </body></html>`;
 }
@@ -234,15 +246,21 @@ export default function HistoryPage() {
     showToast(t.copied);
   };
 
+  const itemBaseName = (item: HistoryItem) =>
+    `manday-${safeBaseName(item.audioName)}-${item.mandayMin}-${item.mandayMax}`;
+
+  const handleExportJsonItem = (item: HistoryItem) => {
+    downloadJson(itemBaseName(item), buildItemJson(item));
+    showToast(t.exportJsonSuccess, 'info');
+  };
+
+  const handleExportMarkdownItem = (item: HistoryItem) => {
+    downloadMarkdown(itemBaseName(item), buildItemMarkdown(item, t, lang));
+    showToast(t.exportMarkdownSuccess, 'info');
+  };
+
   const handleExportCsvItem = (item: HistoryItem) => {
-    const csv = buildItemCsv(item, t);
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `manday-${item.audioName.replace(/\.[^.]+$/, '')}-${item.mandayMin}-${item.mandayMax}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(itemBaseName(item), buildItemCsv(item, t, lang));
     showToast(t.exportCsvSuccess, 'info');
   };
 
@@ -423,9 +441,17 @@ export default function HistoryPage() {
                             </svg>
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                              {highlightName(item.audioName)}
-                            </p>
+                            <Link
+                              href={`/history/${item.id}`}
+                              className="group/name inline-flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-sm hover:text-blue-600 dark:hover:text-blue-400 max-w-full"
+                            >
+                              <span className="truncate underline-offset-2 group-hover/name:underline">
+                                {highlightName(item.audioName)}
+                              </span>
+                              <svg className="w-3.5 h-3.5 flex-shrink-0 opacity-0 group-hover/name:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </Link>
                             <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                               {t.savedAt} {formatDate(item.createdAt, lang)}
                             </p>
@@ -475,7 +501,7 @@ export default function HistoryPage() {
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                             </svg>
-                            {item.assumptions.length} assumptions
+                            {item.assumptions.length} {t.assumptionsShort}
                           </span>
                         )}
                       </div>
@@ -516,7 +542,7 @@ export default function HistoryPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                   </svg>
                                 </span>
-                                <span className="text-sm text-gray-700 dark:text-slate-300">{s}</span>
+                                <Bilingual value={s} className="text-sm text-gray-700 dark:text-slate-300" />
                               </li>
                             ))}
                           </ul>
@@ -524,7 +550,26 @@ export default function HistoryPage() {
 
                         <div>
                           <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.modulesBreakdown}</p>
-                          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700">
+
+                          {/* Mobile: card layout */}
+                          <div className="sm:hidden rounded-xl border border-gray-200 dark:border-slate-700 divide-y divide-gray-100 dark:divide-slate-700 overflow-hidden">
+                            {item.modules.map((m, i) => (
+                              <div key={i} className="px-4 py-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <Bilingual value={m.name} className="font-medium text-gray-900 dark:text-white text-sm" />
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 flex-shrink-0">{m.manday} {lang === 'th' ? 'วัน' : 'd'}</span>
+                                </div>
+                                <div className="mt-1"><Bilingual value={m.description} className="text-sm text-gray-600 dark:text-slate-400" /></div>
+                              </div>
+                            ))}
+                            <div className="px-4 py-3 flex items-center justify-between bg-gray-50 dark:bg-slate-800">
+                              <span className="text-xs font-semibold text-gray-900 dark:text-white">{t.total}</span>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{totalMandays} {lang === 'th' ? 'วัน' : 'd'}</span>
+                            </div>
+                          </div>
+
+                          {/* Desktop: table layout */}
+                          <div className="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700">
                             <table className="w-full text-sm">
                               <thead className="bg-gray-50 dark:bg-slate-800">
                                 <tr>
@@ -536,9 +581,9 @@ export default function HistoryPage() {
                               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                                 {item.modules.map((m, i) => (
                                   <tr key={i}>
-                                    <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white whitespace-nowrap">{m.name}</td>
-                                    <td className="px-4 py-2.5 text-gray-600 dark:text-slate-400">{m.description}</td>
-                                    <td className="px-4 py-2.5 text-right">
+                                    <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white align-top"><Bilingual value={m.name} className="whitespace-nowrap" /></td>
+                                    <td className="px-4 py-2.5 text-gray-600 dark:text-slate-400 align-top"><Bilingual value={m.description} /></td>
+                                    <td className="px-4 py-2.5 text-right align-top">
                                       <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300">{m.manday}</span>
                                     </td>
                                   </tr>
@@ -563,7 +608,7 @@ export default function HistoryPage() {
                               {item.assumptions.map((a, i) => (
                                 <li key={i} className="flex items-start gap-2.5">
                                   <span className="w-4 h-4 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mt-0.5 flex-shrink-0 text-amber-700 dark:text-amber-400 text-xs font-bold">{i + 1}</span>
-                                  <span className="text-sm text-amber-800 dark:text-amber-300">{a}</span>
+                                  <Bilingual value={a} className="text-sm text-amber-800 dark:text-amber-300" subClassName="text-xs text-amber-600/70 dark:text-amber-500/70 mt-0.5 font-normal" />
                                 </li>
                               ))}
                             </ul>
@@ -581,43 +626,15 @@ export default function HistoryPage() {
                         </details>
 
                         {/* Action toolbar */}
-                        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100 dark:border-slate-700">
-                          <button
-                            onClick={() => handleCopyMarkdownItem(item)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            {t.copyMarkdown}
-                          </button>
-                          <button
-                            onClick={() => handleCopyJsonItem(item)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            {t.copyJson}
-                          </button>
-                          <button
-                            onClick={() => handleExportCsvItem(item)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            {t.exportCsv}
-                          </button>
-                          <button
-                            onClick={() => handlePrintItem(item)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            {t.printPdf}
-                          </button>
+                        <div className="flex items-center justify-end pt-4 border-t border-gray-100 dark:border-slate-700">
+                          <ExportMenu
+                            onCopyMarkdown={() => handleCopyMarkdownItem(item)}
+                            onCopyJson={() => handleCopyJsonItem(item)}
+                            onDownloadMarkdown={() => handleExportMarkdownItem(item)}
+                            onDownloadJson={() => handleExportJsonItem(item)}
+                            onDownloadCsv={() => handleExportCsvItem(item)}
+                            onPrint={() => handlePrintItem(item)}
+                          />
                         </div>
                       </div>
                     )}

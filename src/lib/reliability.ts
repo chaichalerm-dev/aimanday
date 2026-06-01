@@ -11,10 +11,10 @@ export interface ReliabilityScore {
 }
 
 export function calculateReliability(result: {
-  sow: string[];
+  sow: unknown[];
   manday_estimate: { min: number; max: number };
   modules: { manday: number }[];
-  assumptions: string[];
+  assumptions: unknown[];
 }): ReliabilityScore {
   // Penalty: each assumption = an unknown requirement
   const assumptionPenalty = Math.min(result.assumptions.length * 12, 42);

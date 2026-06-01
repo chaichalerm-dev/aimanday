@@ -11,24 +11,31 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+    <>
+      {/* Spacer occupies the fixed header's height so content isn't hidden underneath */}
+      <div className="h-14 print:hidden" aria-hidden />
+      <header className="fixed top-0 inset-x-0 z-50 border-b border-gray-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md print:hidden">
       <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         {/* Logo + Nav */}
         <div className="flex items-center gap-1 sm:gap-4 min-w-0">
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            href="/"
+            aria-label="AI Manday Estimator — กลับหน้าหลัก"
+            className="flex items-center gap-2 flex-shrink-0 rounded-lg -m-1 p-1 hover:bg-gray-100 dark:hover:bg-slate-800 active:scale-95 transition-transform"
+          >
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <span className="hidden sm:block font-semibold text-gray-900 dark:text-white text-sm">
+            <span className="font-semibold text-gray-900 dark:text-white text-sm whitespace-nowrap">
               AI Manday
             </span>
           </Link>
 
-          {/* Nav links */}
-          <nav className="flex items-center gap-0.5">
+          {/* Nav links — hidden on mobile (replaced by BottomNav) */}
+          <nav className="hidden md:flex items-center gap-0.5">
             <Link
               href="/"
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -52,6 +59,20 @@ export function Header() {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               {t.historyNav}
+            </Link>
+            <Link
+              href="/guide"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                pathname === '/guide'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                  : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
+              </svg>
+              {t.guideNav}
             </Link>
           </nav>
         </div>
@@ -102,6 +123,7 @@ export function Header() {
           </button>
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 }

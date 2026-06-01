@@ -2,6 +2,7 @@ export interface Translations {
   // Header nav
   homeNav: string;
   historyNav: string;
+  guideNav: string;
   // Hero
   appTitle: string;
   appSubtitle: string;
@@ -37,14 +38,19 @@ export interface Translations {
   colMandays: string;
   total: string;
   assumptions: string;
+  assumptionsShort: string;
   // History page
   historyTitle: string;
   historySubtitle: string;
   historyEmpty: string;
   historyEmptyDesc: string;
   backHome: string;
+  backToHistory: string;
   viewDetail: string;
   hideDetail: string;
+  detailNotFound: string;
+  detailNotFoundDesc: string;
+  sourceTranscript: string;
   savedAt: string;
   loadingHistory: string;
   transcriptLabel: string;
@@ -73,8 +79,15 @@ export interface Translations {
   // Copy / Export
   copyJson: string;
   exportCsv: string;
+  exportJson: string;
+  exportMarkdown: string;
   copyMarkdown: string;
   printPdf: string;
+  exportMenu: string;
+  copyGroup: string;
+  downloadGroup: string;
+  exportJsonSuccess: string;
+  exportMarkdownSuccess: string;
   copied: string;
   exportCsvSuccess: string;
   deleteSuccess: string;
@@ -88,6 +101,7 @@ export interface Translations {
 export const th: Translations = {
   homeNav: 'หน้าหลัก',
   historyNav: 'ประวัติ',
+  guideNav: 'วิธีใช้',
   appTitle: 'AI Manday Estimator',
   appSubtitle: 'อัปโหลดไฟล์เสียง Requirement เพื่อรับ SOW และประมาณการ Manday จาก AI',
   dropHere: 'วางไฟล์เสียงที่นี่ หรือ',
@@ -116,13 +130,18 @@ export const th: Translations = {
   colMandays: 'วันทำงาน',
   total: 'รวม',
   assumptions: 'สมมติฐาน / ข้อมูลที่ต้องสอบถามเพิ่ม',
+  assumptionsShort: 'สมมติฐาน',
   historyTitle: 'ประวัติการประเมิน',
   historySubtitle: 'รายการประมาณการทั้งหมดที่บันทึกไว้',
   historyEmpty: 'ยังไม่มีประวัติการประเมิน',
   historyEmptyDesc: 'กลับไปหน้าหลักและอัปโหลดไฟล์เสียงเพื่อเริ่มต้น',
   backHome: 'กลับหน้าหลัก',
+  backToHistory: 'กลับไปหน้าประวัติ',
   viewDetail: 'ดูรายละเอียด',
   hideDetail: 'ซ่อน',
+  detailNotFound: 'ไม่พบรายการนี้',
+  detailNotFoundDesc: 'รายการอาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง',
+  sourceTranscript: 'ข้อความต้นฉบับจากเสียง',
   savedAt: 'บันทึกเมื่อ',
   loadingHistory: 'กำลังโหลด…',
   transcriptLabel: 'Transcript',
@@ -148,9 +167,16 @@ export const th: Translations = {
   copyJson: 'คัดลอก JSON',
   exportCsv: 'ส่งออก CSV',
   copyMarkdown: 'คัดลอก Markdown',
+  exportJson: 'บันทึก JSON',
+  exportMarkdown: 'บันทึก Markdown',
   printPdf: 'พิมพ์ / PDF',
+  exportMenu: 'ส่งออก',
+  copyGroup: 'คัดลอกไปคลิปบอร์ด',
+  downloadGroup: 'ดาวน์โหลดไฟล์',
   copied: 'คัดลอกแล้ว!',
   exportCsvSuccess: 'ดาวน์โหลด CSV แล้ว!',
+  exportJsonSuccess: 'ดาวน์โหลด JSON แล้ว!',
+  exportMarkdownSuccess: 'ดาวน์โหลด Markdown แล้ว!',
   deleteSuccess: 'ลบเรียบร้อยแล้ว',
   generating: 'กำลังสร้าง…',
   printReportTitle: 'รายงานประมาณการโครงการ',
@@ -161,6 +187,7 @@ export const th: Translations = {
 export const en: Translations = {
   homeNav: 'Home',
   historyNav: 'History',
+  guideNav: 'Guide',
   appTitle: 'AI Manday Estimator',
   appSubtitle: 'Upload an audio requirement recording to get AI-generated SOW and manday estimate',
   dropHere: 'Drop audio file here, or',
@@ -189,13 +216,18 @@ export const en: Translations = {
   colMandays: 'Mandays',
   total: 'Total',
   assumptions: 'Assumptions / Missing Info',
+  assumptionsShort: 'assumptions',
   historyTitle: 'Estimation History',
   historySubtitle: 'All saved estimations',
   historyEmpty: 'No estimations yet',
   historyEmptyDesc: 'Go back to the home page and upload an audio file to get started',
   backHome: 'Back to Home',
+  backToHistory: 'Back to History',
   viewDetail: 'View Details',
   hideDetail: 'Hide',
+  detailNotFound: 'Item not found',
+  detailNotFoundDesc: 'This item may have been deleted, or the link is invalid',
+  sourceTranscript: 'Source transcript from audio',
   savedAt: 'Saved at',
   loadingHistory: 'Loading…',
   transcriptLabel: 'Transcript',
@@ -221,9 +253,16 @@ export const en: Translations = {
   copyJson: 'Copy JSON',
   exportCsv: 'Export CSV',
   copyMarkdown: 'Copy Markdown',
+  exportJson: 'Save JSON',
+  exportMarkdown: 'Save Markdown',
   printPdf: 'Print / PDF',
+  exportMenu: 'Export',
+  copyGroup: 'Copy to clipboard',
+  downloadGroup: 'Download file',
   copied: 'Copied!',
   exportCsvSuccess: 'CSV downloaded!',
+  exportJsonSuccess: 'JSON downloaded!',
+  exportMarkdownSuccess: 'Markdown downloaded!',
   deleteSuccess: 'Deleted successfully',
   generating: 'Generating…',
   printReportTitle: 'Project Estimation Report',

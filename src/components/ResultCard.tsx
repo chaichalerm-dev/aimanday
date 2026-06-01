@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useLang } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { calculateReliability, type ReliabilityScore } from '@/lib/reliability';
+import { downloadJson, downloadMarkdown, downloadCsv } from '@/lib/download';
+import { plainText } from '@/lib/bilingual';
+import { ExportMenu } from '@/components/ExportMenu';
+import { Bilingual } from '@/components/Bilingual';
 import type { EstimationResult, Module } from '@/lib/analyzer';
 import type { Translations } from '@/lib/i18n';
 
@@ -80,6 +84,35 @@ export function ResultCard({ result }: ResultCardProps) {
 
   const { showToast } = useToast();
   const reliability = calculateReliability(result);
+  const baseName = `manday-estimate-${manday_estimate.min}-${manday_estimate.max}`;
+
+  const buildMarkdown = (): string => {
+    const lines: string[] = [];
+    lines.push(`# Manday Estimate: ${manday_estimate.min}–${manday_estimate.max} ${lang === 'th' ? 'วันทำงาน' : 'mandays'}`);
+    lines.push('');
+    lines.push(`## ${t.scopeOfWork}`);
+    sow.forEach(s => lines.push(`- ${plainText(s, lang)}`));
+    lines.push('');
+    lines.push(`## ${t.modulesBreakdown}`);
+    lines.push(`| ${t.colModule} | ${t.colDescription} | ${t.colMandays} |`);
+    lines.push('|---|---|---|');
+    modules.forEach((m: Module) => lines.push(`| ${plainText(m.name, lang)} | ${plainText(m.description, lang)} | ${m.manday} |`));
+    lines.push(`| **${t.total}** | | **${totalMandays}** |`);
+    if (assumptions.length > 0) {
+      lines.push('');
+      lines.push(`## ${t.assumptions}`);
+      assumptions.forEach(a => lines.push(`- ${plainText(a, lang)}`));
+    }
+    return lines.join('\n');
+  };
+
+  const buildCsv = (): string => {
+    const header = [t.colModule, t.colDescription, t.colMandays];
+    const rows = modules.map((m: Module) => [plainText(m.name, lang), plainText(m.description, lang), String(m.manday)]);
+    return [header, ...rows, [t.total, '', String(totalMandays)]]
+      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+  };
 
   const handleCopyJson = async () => {
     await navigator.clipboard.writeText(JSON.stringify(result, null, 2));
@@ -87,24 +120,18 @@ export function ResultCard({ result }: ResultCardProps) {
   };
 
   const handleCopyMarkdown = async () => {
-    const lines: string[] = [];
-    lines.push(`# Manday Estimate: ${manday_estimate.min}–${manday_estimate.max} ${lang === 'th' ? 'วันทำงาน' : 'mandays'}`);
-    lines.push('');
-    lines.push(`## ${t.scopeOfWork}`);
-    sow.forEach(s => lines.push(`- ${s}`));
-    lines.push('');
-    lines.push(`## ${t.modulesBreakdown}`);
-    lines.push(`| ${t.colModule} | ${t.colDescription} | ${t.colMandays} |`);
-    lines.push('|---|---|---|');
-    modules.forEach((m: Module) => lines.push(`| ${m.name} | ${m.description} | ${m.manday} |`));
-    lines.push(`| **${t.total}** | | **${totalMandays}** |`);
-    if (assumptions.length > 0) {
-      lines.push('');
-      lines.push(`## ${t.assumptions}`);
-      assumptions.forEach((a: string) => lines.push(`- ${a}`));
-    }
-    await navigator.clipboard.writeText(lines.join('\n'));
+    await navigator.clipboard.writeText(buildMarkdown());
     showToast(t.copied);
+  };
+
+  const handleExportJson = () => {
+    downloadJson(baseName, result);
+    showToast(t.exportJsonSuccess, 'info');
+  };
+
+  const handleExportMarkdown = () => {
+    downloadMarkdown(baseName, buildMarkdown());
+    showToast(t.exportMarkdownSuccess, 'info');
   };
 
   const handlePrint = () => {
@@ -116,19 +143,7 @@ export function ResultCard({ result }: ResultCardProps) {
   };
 
   const handleExportCsv = () => {
-    const header = [t.colModule, t.colDescription, t.colMandays];
-    const rows = modules.map((m: Module) => [m.name, m.description, String(m.manday)]);
-    const csv = [header, ...rows, [t.total, '', String(totalMandays)]]
-      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    // BOM for Excel UTF-8
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `manday-estimate-${manday_estimate.min}-${manday_estimate.max}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(baseName, buildCsv());
     showToast(t.exportCsvSuccess, 'info');
   };
 
@@ -158,46 +173,15 @@ export function ResultCard({ result }: ResultCardProps) {
       </div>
 
       {/* Action toolbar — hidden when printing */}
-      <div className="flex items-center justify-end gap-2 print:hidden">
-        <button
-          onClick={handleCopyMarkdown}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          {t.copyMarkdown}
-        </button>
-
-        <button
-          onClick={handleCopyJson}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-          {t.copyJson}
-        </button>
-
-        <button
-          onClick={handleExportCsv}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          {t.exportCsv}
-        </button>
-
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-          </svg>
-          {t.printPdf}
-        </button>
+      <div className="flex items-center justify-end print:hidden">
+        <ExportMenu
+          onCopyMarkdown={handleCopyMarkdown}
+          onCopyJson={handleCopyJson}
+          onDownloadMarkdown={handleExportMarkdown}
+          onDownloadJson={handleExportJson}
+          onDownloadCsv={handleExportCsv}
+          onPrint={handlePrint}
+        />
       </div>
 
       {/* Manday Banner */}
@@ -228,14 +212,14 @@ export function ResultCard({ result }: ResultCardProps) {
           {t.scopeOfWork}
         </h3>
         <ul className="space-y-2.5">
-          {sow.map((item: string, i: number) => (
+          {sow.map((item, i: number) => (
             <li key={i} className="flex items-start gap-3">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mt-0.5">
                 <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </span>
-              <span className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">{item}</span>
+              <Bilingual value={item} className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed" />
             </li>
           ))}
         </ul>
@@ -249,7 +233,32 @@ export function ResultCard({ result }: ResultCardProps) {
             {modules.length} {t.moduleWord}
           </span>
         </div>
-        <div className="overflow-x-auto">
+        {/* Mobile: card layout */}
+        <div className="sm:hidden print:hidden divide-y divide-gray-100 dark:divide-slate-800">
+          {modules.map((module: Module, i: number) => (
+            <div key={i} className="px-5 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <Bilingual value={module.name} className="font-semibold text-gray-900 dark:text-white text-sm" />
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 flex-shrink-0">
+                  {module.manday} {lang === 'th' ? 'วัน' : 'd'}
+                </span>
+              </div>
+              <div className="mt-1.5">
+                <Bilingual value={module.description} className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed" />
+              </div>
+            </div>
+          ))}
+          {/* Mobile total */}
+          <div className="px-5 py-3.5 flex items-center justify-between bg-gray-50 dark:bg-slate-800/60">
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">{t.total}</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 dark:bg-blue-500 text-white">
+              {totalMandays} {lang === 'th' ? 'วัน' : 'd'}
+            </span>
+          </div>
+        </div>
+
+        {/* Desktop + print: table layout */}
+        <div className="hidden sm:block print:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-100 dark:border-slate-700">
               <tr>
@@ -261,9 +270,13 @@ export function ResultCard({ result }: ResultCardProps) {
             <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
               {modules.map((module: Module, i: number) => (
                 <tr key={i} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                  <td className="px-5 sm:px-6 py-3.5 font-medium text-gray-900 dark:text-white whitespace-nowrap">{module.name}</td>
-                  <td className="px-5 sm:px-6 py-3.5 text-gray-600 dark:text-slate-400 max-w-xs">{module.description}</td>
-                  <td className="px-5 sm:px-6 py-3.5 text-right">
+                  <td className="px-5 sm:px-6 py-3.5 font-medium text-gray-900 dark:text-white align-top">
+                    <Bilingual value={module.name} className="whitespace-nowrap" />
+                  </td>
+                  <td className="px-5 sm:px-6 py-3.5 text-gray-600 dark:text-slate-400 max-w-xs align-top">
+                    <Bilingual value={module.description} />
+                  </td>
+                  <td className="px-5 sm:px-6 py-3.5 text-right align-top">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300">
                       {module.manday}
                     </span>
@@ -293,12 +306,12 @@ export function ResultCard({ result }: ResultCardProps) {
             {t.assumptions}
           </h3>
           <ul className="space-y-2.5">
-            {assumptions.map((assumption: string, i: number) => (
+            {assumptions.map((assumption, i: number) => (
               <li key={i} className="flex items-start gap-3">
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-200 dark:bg-amber-800/50 flex items-center justify-center mt-0.5 text-amber-700 dark:text-amber-400 text-xs font-bold">
                   {i + 1}
                 </span>
-                <span className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">{assumption}</span>
+                <Bilingual value={assumption} className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed" subClassName="text-xs text-amber-600/70 dark:text-amber-500/70 mt-0.5 font-normal" />
               </li>
             ))}
           </ul>

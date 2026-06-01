@@ -1,22 +1,29 @@
 import Groq from 'groq-sdk';
+import type { MaybeBilingual } from './bilingual';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Text fields may be a plain string (legacy records) or { th, en } (current).
 export interface Module {
-  name: string;
-  description: string;
+  name: MaybeBilingual;
+  description: MaybeBilingual;
   manday: number;
 }
 
 export interface EstimationResult {
-  sow: string[];
+  sow: MaybeBilingual[];
   manday_estimate: { min: number; max: number };
   modules: Module[];
-  assumptions: string[];
+  assumptions: MaybeBilingual[];
 }
 
 export const SYSTEM_PROMPT = `You are a senior software project estimator with 10+ years experience.
-Analyze the given project requirement transcript and return ONLY valid JSON (no markdown, no explanation).`;
+Analyze the given project requirement transcript and return ONLY valid JSON (no markdown, no explanation).
+
+CRITICAL BILINGUAL RULE: Every human-readable text field MUST be an object with two keys "th" (Thai) and "en" (English).
+- "th" must be written in the Thai language (Thai script).
+- "en" must be written in the English language.
+- These are TRANSLATIONS of each other — never put the same language in both. If the source is Thai, translate it to English for "en", and vice versa.`;
 
 export function buildUserPrompt(transcript: string): string {
   return `Analyze this requirement and estimate manday:
@@ -24,13 +31,27 @@ export function buildUserPrompt(transcript: string): string {
 ${transcript}
 """
 
-Return ONLY this JSON structure:
+Return ONLY this exact JSON structure. Note how every text field has BOTH a Thai "th" and an English "en" value:
+
 {
-  "sow": ["list of deliverables"],
-  "manday_estimate": { "min": number, "max": number },
-  "modules": [{ "name": "", "description": "", "manday": number }],
-  "assumptions": ["if requirement is unclear, list assumptions here"]
-}`;
+  "sow": [
+    { "th": "ระบบยืนยันตัวตนผู้ใช้", "en": "User authentication system" },
+    { "th": "หน้าจัดการสินค้า", "en": "Product management page" }
+  ],
+  "manday_estimate": { "min": 20, "max": 30 },
+  "modules": [
+    {
+      "name": { "th": "ระบบล็อกอิน", "en": "Login System" },
+      "description": { "th": "เข้าสู่ระบบและสมัครสมาชิกพร้อมสิทธิ์การใช้งาน", "en": "Login and registration with role-based access" },
+      "manday": 5
+    }
+  ],
+  "assumptions": [
+    { "th": "สมมติว่าเป็นเว็บแอปเท่านั้น ไม่มีแอปมือถือ", "en": "Assuming web application only, no mobile app" }
+  ]
+}
+
+Follow this format exactly. The "th" value must be Thai text and the "en" value must be the English translation of the same meaning.`;
 }
 
 export function tryParseJSON(text: string): EstimationResult | null {
