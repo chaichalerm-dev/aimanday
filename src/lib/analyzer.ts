@@ -1,7 +1,4 @@
-import Groq from 'groq-sdk';
 import type { MaybeBilingual } from './bilingual';
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // Text fields may be a plain string (legacy records) or { th, en } (current).
 export interface Module {
@@ -75,31 +72,4 @@ export function tryParseJSON(text: string): EstimationResult | null {
   } catch {
     return null;
   }
-}
-
-async function callLLM(transcript: string): Promise<string> {
-  const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
-    max_tokens: 4096,
-    temperature: 0.1,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: buildUserPrompt(transcript) },
-    ],
-  });
-
-  return completion.choices[0]?.message?.content ?? '';
-}
-
-export async function analyzeTranscript(transcript: string): Promise<EstimationResult> {
-  const firstResponse = await callLLM(transcript);
-  const firstParsed = tryParseJSON(firstResponse);
-  if (firstParsed) return firstParsed;
-
-  // Retry once on parse failure
-  const secondResponse = await callLLM(transcript);
-  const secondParsed = tryParseJSON(secondResponse);
-  if (secondParsed) return secondParsed;
-
-  throw new Error('LLM returned invalid JSON after 2 attempts. Raw output: ' + firstResponse.slice(0, 500));
 }

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { useLang } from '@/contexts/LanguageContext';
 
 // LINE Official Account ID
@@ -29,22 +30,23 @@ const content = {
     intro: 'AI Manday Estimator คือระบบช่วยประเมินจำนวนวันทำงาน (Manday) จากไฟล์เสียง Requirement โดยอัตโนมัติ — เพียงอัปโหลดไฟล์เสียงที่ลูกค้าพูดความต้องการ ระบบจะถอดเสียงเป็นข้อความ แล้วใช้ AI วิเคราะห์ออกมาเป็นขอบเขตงาน (SOW) พร้อมประมาณการเวลาแยกรายโมดูล',
     stepsTitle: 'ขั้นตอนการใช้งาน',
     steps: [
-      { num: 1, title: 'อัปโหลดไฟล์เสียง', desc: 'ลากไฟล์ .mp3 / .wav / .m4a มาวาง หรือคลิกเพื่อเลือกไฟล์ สามารถกดเล่นฟังก่อนได้จากเครื่องเล่นที่ปรากฏ' },
-      { num: 2, title: 'ถอดเสียง', desc: 'กดปุ่ม "ถอดเสียง" ระบบจะแปลงไฟล์เสียงเป็นข้อความด้วย AI (Whisper)' },
-      { num: 3, title: 'ตรวจสอบและแก้ไขข้อความ', desc: 'AI ถอดเสียงอาจมีคำผิดบ้าง สามารถแก้ไขข้อความให้ถูกต้องก่อนส่งวิเคราะห์ได้' },
-      { num: 4, title: 'วิเคราะห์ด้วย AI', desc: 'กดปุ่ม "วิเคราะห์ด้วย AI" จะเห็นผลลัพธ์ค่อยๆ ปรากฏแบบ real-time' },
-      { num: 5, title: 'ดูผลและส่งออก', desc: 'ดู SOW, ช่วง Manday, ตารางโมดูล และสมมติฐาน จากนั้นคัดลอกหรือดาวน์โหลดเป็นไฟล์ได้' },
+      { num: 1, title: 'อัปโหลดไฟล์เสียง', desc: 'ลากไฟล์ .mp3 / .wav / .m4a มาวาง หรือคลิกเพื่อเลือกไฟล์ เครื่องเล่นจะปรากฏให้ฟังก่อนได้ทันที หากเลือกไฟล์ผิดกดปุ่ม "ลบออก" เพื่อเปลี่ยนใหม่ได้' },
+      { num: 2, title: 'ถอดเสียง', desc: 'กดปุ่ม "ถอดเสียง" ระบบจะแปลงไฟล์เสียงเป็นข้อความด้วย Groq Whisper โดยอัตโนมัติ' },
+      { num: 3, title: 'ตรวจสอบและแก้ไขข้อความ', desc: 'AI ถอดเสียงอาจมีคำผิดบ้าง ฟังเสียงซ้ำได้จากเครื่องเล่นที่ปรากฏอยู่ แล้วแก้ไขข้อความให้ถูกต้องก่อนส่ง AI วิเคราะห์' },
+      { num: 4, title: 'วิเคราะห์ด้วย AI', desc: 'กดปุ่ม "วิเคราะห์ด้วย AI" จะเห็นผลลัพธ์ค่อยๆ ปรากฏแบบ real-time พร้อม progress terminal' },
+      { num: 5, title: 'ดูผลและส่งออก', desc: 'ดู SOW, ช่วง Manday, ตารางโมดูลแยกรายการ, สมมติฐาน และคะแนนความน่าเชื่อถือ จากนั้นคัดลอกหรือดาวน์โหลดเป็นไฟล์ได้ทันที' },
     ] as Step[],
     featuresTitle: 'ฟีเจอร์ทั้งหมด',
     features: [
-      { title: 'ถอดเสียงเป็นข้อความ (STT)', desc: 'แปลงไฟล์เสียงเป็นข้อความด้วย Groq Whisper', why: 'ประหยัดเวลา PM ที่ต้องนั่งฟังและจดเองทีละนาที' },
-      { title: 'แก้ไข Transcript ได้', desc: 'แก้ไขข้อความที่ถอดได้ก่อนส่งให้ AI', why: 'STT ไม่แม่น 100% การแก้ก่อนช่วยให้ผลวิเคราะห์ถูกต้องขึ้น' },
-      { title: 'วิเคราะห์แบบ Streaming', desc: 'เห็นผล AI ค่อยๆ พิมพ์ออกมาแบบ real-time', why: 'ไม่ต้องรอหน้าจอค้าง รู้ว่าระบบกำลังทำงานอยู่' },
-      { title: 'คะแนนความน่าเชื่อถือ', desc: 'แสดง % ความเชื่อมั่นของการประเมิน', why: 'ช่วยให้รู้ว่าควรเชื่อผลแค่ไหน หรือต้องถามลูกค้าเพิ่ม' },
-      { title: 'ประวัติการประเมิน', desc: 'เก็บทุกการประเมินไว้ ค้นหาและแบ่งหน้าได้', why: 'ย้อนดูงานเก่า เปรียบเทียบ หรือนำมาใช้ใหม่ได้' },
-      { title: 'วิเคราะห์ซ้ำ', desc: 'ดึง transcript เก่ามาแก้แล้ววิเคราะห์ใหม่', why: 'ปรับ requirement แล้วประเมินใหม่โดยไม่ต้องอัดเสียงซ้ำ' },
-      { title: 'ส่งออกหลายรูปแบบ', desc: 'คัดลอก/ดาวน์โหลดเป็น JSON, Markdown, CSV หรือ PDF', why: 'นำผลไปใช้ต่อในเอกสาร ใบเสนอราคา หรือส่งทีมได้ทันที' },
-      { title: 'โหมดมืด/สว่าง + ไทย/อังกฤษ', desc: 'สลับธีมและภาษาได้ทันที', why: 'ใช้งานสบายตาทุกสภาพแสง รองรับทีมต่างชาติ' },
+      { title: 'ถอดเสียงเป็นข้อความ (STT)', desc: 'แปลงไฟล์เสียงเป็นข้อความด้วย Groq Whisper ใช้เวลาไม่กี่วินาที', why: 'ประหยัดเวลา PM ที่ต้องนั่งฟังและจดเองทีละนาที' },
+      { title: 'เครื่องเล่นเสียงพร้อม Waveform', desc: 'เล่น / หยุด / Seek พร้อมแสดง waveform — ใช้ได้ทั้งขั้นอัปโหลด, ตรวจสอบ transcript และในหน้าประวัติ', why: 'เทียบเสียงกับข้อความได้ทุกจุดโดยไม่ต้องสลับแอป' },
+      { title: 'แก้ไข Transcript ได้', desc: 'ฟังเสียงซ้ำขณะตรวจสอบ แล้วแก้ไขข้อความให้ถูกต้องก่อนส่ง AI', why: 'STT ไม่แม่น 100% การแก้ก่อนช่วยให้ผลวิเคราะห์แม่นยำขึ้นมาก' },
+      { title: 'วิเคราะห์แบบ Streaming', desc: 'เห็นผล AI ค่อยๆ พิมพ์ออกมาแบบ real-time เหมือน terminal', why: 'ไม่ต้องรอหน้าจอค้าง รู้ว่าระบบกำลังทำงานอยู่ตลอดเวลา' },
+      { title: 'คะแนนความน่าเชื่อถือ', desc: 'แสดง % ความเชื่อมั่นพร้อม breakdown: สมมติฐาน, ช่วง range, ความละเอียด', why: 'รู้ว่าควรเชื่อผลแค่ไหน หรือต้องสอบถามลูกค้าเพิ่มในจุดไหน' },
+      { title: 'ประวัติและหน้ารายละเอียด', desc: 'เก็บทุกการประเมิน ค้นหา/แบ่งหน้าได้ คลิกชื่อไฟล์เปิดหน้าเดี่ยวพร้อม export และฟังเสียงประกอบ', why: 'ย้อนดูงานเก่า เปรียบเทียบ หรือนำมา Re-analyze ได้ทันที' },
+      { title: 'วิเคราะห์ซ้ำ (Re-analyze)', desc: 'ดึง transcript เก่าจากประวัติ แก้ไข แล้ววิเคราะห์ใหม่โดยไม่ต้องอัดเสียงซ้ำ', why: 'ปรับ requirement หรือแก้คำผิดแล้วประเมินใหม่ได้ทันที' },
+      { title: 'ส่งออกหลายรูปแบบ', desc: 'คัดลอก/ดาวน์โหลดเป็น JSON, Markdown, CSV หรือพิมพ์เป็น PDF — มีทุกหน้า', why: 'นำผลไปใช้ต่อในเอกสาร ใบเสนอราคา หรือส่งทีมได้ทันที' },
+      { title: 'ธีม + ภาษา จำการตั้งค่า', desc: 'โหมดมืดโทนอบอุ่น (Zinc) ไม่ดำจนเกินไป สลับกับโหมดสว่างได้ทันที พร้อมสลับภาษา TH/EN ระบบจำค่าที่ตั้งไว้แม้ reload หน้า', why: 'ใช้งานสบายตาทุกสภาพแสง ทั้งในที่สว่างและมืด รองรับทีมที่ใช้ภาษาต่างกัน' },
     ] as Feature[],
     contactTitle: 'ติดต่อผู้พัฒนา',
     contactDesc: 'มีคำถาม ข้อเสนอแนะ หรือพบปัญหาการใช้งาน? ติดต่อเราได้ผ่าน LINE Official Account',
@@ -59,22 +61,23 @@ const content = {
     intro: 'AI Manday Estimator automatically estimates project mandays from audio requirement recordings. Simply upload an audio file of a client describing their needs — the system transcribes it to text, then uses AI to extract a Scope of Work (SOW) with per-module time estimates.',
     stepsTitle: 'How it works',
     steps: [
-      { num: 1, title: 'Upload audio', desc: 'Drag & drop a .mp3 / .wav / .m4a file or click to browse. Preview it with the built-in player before processing.' },
-      { num: 2, title: 'Transcribe', desc: 'Click "Transcribe Audio" — the system converts speech to text using AI (Whisper).' },
-      { num: 3, title: 'Review & edit', desc: 'STT may have minor errors. Edit the transcript before sending for analysis.' },
-      { num: 4, title: 'Analyze with AI', desc: 'Click "Analyze with AI" and watch results stream in real-time.' },
-      { num: 5, title: 'View & export', desc: 'Review the SOW, manday range, modules table, and assumptions — then copy or download as a file.' },
+      { num: 1, title: 'Upload audio', desc: 'Drag & drop a .mp3 / .wav / .m4a file or click to browse. A built-in player appears to preview it immediately. If you picked the wrong file, click "Remove" to swap it out.' },
+      { num: 2, title: 'Transcribe', desc: 'Click "Transcribe Audio" — Groq Whisper converts the recording to text automatically in seconds.' },
+      { num: 3, title: 'Review & edit', desc: 'STT may have minor errors. Play the audio again right on the same screen to cross-check, then edit the transcript before sending to AI.' },
+      { num: 4, title: 'Analyze with AI', desc: 'Click "Analyze with AI" and watch results stream in real-time via a live terminal.' },
+      { num: 5, title: 'View & export', desc: 'Review the SOW, manday range, modules table, assumptions, and reliability score — then copy or download in your preferred format.' },
     ] as Step[],
     featuresTitle: 'All Features',
     features: [
-      { title: 'Speech-to-Text', desc: 'Convert audio to text via Groq Whisper', why: 'Saves PMs from listening and note-taking minute by minute' },
-      { title: 'Editable Transcript', desc: 'Fix the transcript before AI analysis', why: 'STT is not 100% accurate; editing improves analysis quality' },
-      { title: 'Streaming Analysis', desc: 'Watch AI output appear in real-time', why: 'No frozen screen — you know the system is working' },
-      { title: 'Reliability Score', desc: 'Shows a confidence % for each estimate', why: 'Know how much to trust the result or when to ask the client' },
-      { title: 'Estimation History', desc: 'Stores every estimate with search & pagination', why: 'Revisit, compare, or reuse past work' },
-      { title: 'Re-analyze', desc: 'Reload a past transcript, edit, and re-run', why: 'Adjust requirements and re-estimate without re-recording' },
-      { title: 'Multi-format Export', desc: 'Copy/download as JSON, Markdown, CSV, or PDF', why: 'Drop results into docs, quotes, or share with the team instantly' },
-      { title: 'Dark mode + TH/EN', desc: 'Switch theme and language instantly', why: 'Comfortable in any lighting, works for international teams' },
+      { title: 'Speech-to-Text (STT)', desc: 'Convert audio to text via Groq Whisper in seconds', why: 'Saves PMs from listening and note-taking minute by minute' },
+      { title: 'Audio Player with Waveform', desc: 'Play / pause / seek with waveform visualization — available at upload, transcript review, and in history', why: 'Cross-check audio against text at every stage without switching apps' },
+      { title: 'Editable Transcript', desc: 'Replay the audio while reviewing, then fix any STT errors before AI analysis', why: 'Even small corrections significantly improve the quality of the AI output' },
+      { title: 'Streaming Analysis', desc: 'Watch AI output appear word-by-word in real-time, like a terminal', why: 'No frozen screen — you always know the system is working' },
+      { title: 'Reliability Score', desc: 'Shows a confidence % with a breakdown: assumptions, range spread, detail level', why: 'Know exactly how much to trust the result and where to probe the client' },
+      { title: 'History & Detail Page', desc: 'All estimates saved — searchable, paginated. Click any filename for a full detail page with export and audio replay', why: 'Revisit, compare, or re-analyze past work instantly' },
+      { title: 'Re-analyze', desc: 'Pull any past transcript back into the editor, edit it, and re-run the analysis', why: 'Adjust requirements or fix transcription errors without re-recording' },
+      { title: 'Multi-format Export', desc: 'Copy/download as JSON, Markdown, CSV, or print to PDF — available on every page', why: 'Drop results straight into docs, quotes, or share with the team' },
+      { title: 'Theme + Language Saved', desc: 'Warm dark mode (Zinc tones, not pitch-black) + light mode, plus Thai/English toggle — all settings saved across reloads', why: 'Easy on the eyes in any lighting, works for mixed-language teams' },
     ] as Feature[],
     contactTitle: 'Contact the Developer',
     contactDesc: 'Questions, feedback, or issues? Reach us via our LINE Official Account.',
@@ -105,7 +108,7 @@ export default function GuidePage() {
         </div>
 
         {/* Intro */}
-        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 mb-6 shadow-sm">
+        <section className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-6 mb-6 shadow-sm">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-3">{c.introTitle}</h2>
           <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">{c.intro}</p>
         </section>
@@ -115,7 +118,7 @@ export default function GuidePage() {
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4 px-1">{c.stepsTitle}</h2>
           <div className="space-y-3">
             {c.steps.map(step => (
-              <div key={step.num} className="flex items-start gap-4 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 p-4 sm:p-5 shadow-sm">
+              <div key={step.num} className="flex items-start gap-4 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-4 sm:p-5 shadow-sm">
                 <span className="flex-shrink-0 w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
                   {step.num}
                 </span>
@@ -133,7 +136,7 @@ export default function GuidePage() {
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4 px-1">{c.featuresTitle}</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {c.features.map((f, i) => (
-              <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 p-5 shadow-sm">
+              <div key={i} className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 shadow-sm">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
                   {f.title}
@@ -198,11 +201,7 @@ export default function GuidePage() {
         </div>
       </main>
 
-      <footer className="border-t border-gray-200 dark:border-slate-800 py-4 text-center">
-        <p className="text-xs text-gray-400 dark:text-slate-600">
-          Powered by Groq Whisper &amp; Llama 3.3 · Stored in MongoDB
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }

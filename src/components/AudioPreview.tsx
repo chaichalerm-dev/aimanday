@@ -86,7 +86,7 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
   if (!url) return null;
 
   return (
-    <div className={`rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 p-4 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
+    <div className={`rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700/50 p-4 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
       <audio
         ref={audioRef}
         src={url}
@@ -152,7 +152,7 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
                       ? 'bg-blue-500 dark:bg-blue-400'
                       : isCurrent
                       ? 'bg-blue-400 dark:bg-blue-300'
-                      : 'bg-gray-300 dark:bg-slate-600'
+                      : 'bg-gray-300 dark:bg-zinc-600'
                   } ${isPlaying && isCurrent ? 'animate-pulse' : ''}`}
                   style={{
                     height: `${height}%`,

@@ -35,7 +35,7 @@ function MenuItem({
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 rounded-lg text-left"
+      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-zinc-600/60 rounded-lg text-left"
     >
       <svg className="w-4 h-4 flex-shrink-0 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         {ICONS[icon]}
@@ -111,7 +111,7 @@ export function ExportMenu(handlers: ExportMenuHandlers) {
         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
           open
             ? 'border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
-            : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
+            : 'border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white'
         }`}
       >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">{ICONS.download}</svg>
@@ -129,7 +129,7 @@ export function ExportMenu(handlers: ExportMenuHandlers) {
       {mounted && open && createPortal(
         <div
           ref={menuRef}
-          className="fixed z-[200] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl p-2"
+          className="fixed z-[200] bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-2xl p-2"
           style={{
             top: coords.top,
             left: coords.left,
@@ -143,7 +143,7 @@ export function ExportMenu(handlers: ExportMenuHandlers) {
           <MenuItem icon="copy" label={t.copyMarkdown} onClick={run(handlers.onCopyMarkdown)} />
           <MenuItem icon="copy" label={t.copyJson} onClick={run(handlers.onCopyJson)} />
 
-          <div className="my-1.5 border-t border-gray-100 dark:border-slate-700" />
+          <div className="my-1.5 border-t border-gray-100 dark:border-zinc-700" />
 
           <p className="px-3 pt-1 pb-1.5 text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
             {t.downloadGroup}
@@ -152,7 +152,7 @@ export function ExportMenu(handlers: ExportMenuHandlers) {
           <MenuItem icon="download" label={t.exportJson} onClick={run(handlers.onDownloadJson)} />
           <MenuItem icon="download" label={t.exportCsv} onClick={run(handlers.onDownloadCsv)} />
 
-          <div className="my-1.5 border-t border-gray-100 dark:border-slate-700" />
+          <div className="my-1.5 border-t border-gray-100 dark:border-zinc-700" />
 
           <MenuItem icon="print" label={t.printPdf} onClick={run(handlers.onPrint)} />
         </div>,

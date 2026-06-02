@@ -10,10 +10,10 @@ const MAX_FILE_SIZE_MB = 25;
 export async function POST(request: NextRequest) {
   // Rate limit: 10 STT requests per minute per IP
   const ip = getClientIp(request);
-  const rl = checkRateLimit(`upload:${ip}`, 10, 60_000);
-  const headers = rateLimitHeaders(rl);
+  const rateLimitResult = checkRateLimit(`upload:${ip}`, 10, 60_000);
+  const headers = rateLimitHeaders(rateLimitResult);
 
-  if (!rl.allowed) {
+  if (!rateLimitResult.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please wait before trying again.' },
       { status: 429, headers },

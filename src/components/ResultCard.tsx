@@ -13,6 +13,7 @@ import type { Translations } from '@/lib/i18n';
 
 interface ResultCardProps {
   result: EstimationResult;
+  hideToolbar?: boolean;
 }
 
 function ReliabilityBadge({
@@ -49,25 +50,25 @@ function ReliabilityBadge({
         <div className="absolute right-0 top-full mt-2 z-10 w-56 bg-slate-900 border border-slate-700 rounded-xl p-3 shadow-xl text-xs text-slate-300 space-y-1.5">
           <p className="font-semibold text-white mb-2">{t.reliabilityLabel}</p>
           <div className="flex justify-between">
-            <span className="text-slate-400">Assumptions</span>
+            <span className="text-slate-400">{t.reliabilityAssumptions}</span>
             <span className={reliability.assumptionPenalty < 0 ? 'text-red-400' : 'text-slate-300'}>
               {reliability.assumptionPenalty < 0 ? reliability.assumptionPenalty : '–'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">Range spread</span>
+            <span className="text-slate-400">{t.reliabilityRangeSpread}</span>
             <span className={reliability.rangePenalty < 0 ? 'text-red-400' : 'text-slate-300'}>
               {reliability.rangePenalty < 0 ? reliability.rangePenalty : '–'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">Detail bonus</span>
+            <span className="text-slate-400">{t.reliabilityDetailBonus}</span>
             <span className={reliability.detailBonus > 0 ? 'text-green-400' : 'text-slate-300'}>
               {reliability.detailBonus > 0 ? `+${reliability.detailBonus}` : '–'}
             </span>
           </div>
           <div className="border-t border-slate-700 pt-1.5 flex justify-between font-semibold text-white">
-            <span>Score</span>
+            <span>{t.reliabilityScore}</span>
             <span>{reliability.score}/100</span>
           </div>
           <p className="text-slate-500 text-[10px] leading-relaxed pt-0.5">{t.reliabilityHint}</p>
@@ -77,7 +78,7 @@ function ReliabilityBadge({
   );
 }
 
-export function ResultCard({ result }: ResultCardProps) {
+export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
   const { t, lang } = useLang();
   const { sow, manday_estimate, modules, assumptions } = result;
   const totalMandays = modules.reduce((sum: number, m: Module) => sum + m.manday, 0);
@@ -115,13 +116,21 @@ export function ResultCard({ result }: ResultCardProps) {
   };
 
   const handleCopyJson = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(result, null, 2));
-    showToast(t.copied);
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+      showToast(t.copied);
+    } catch {
+      showToast(t.copyFailed, 'error');
+    }
   };
 
   const handleCopyMarkdown = async () => {
-    await navigator.clipboard.writeText(buildMarkdown());
-    showToast(t.copied);
+    try {
+      await navigator.clipboard.writeText(buildMarkdown());
+      showToast(t.copied);
+    } catch {
+      showToast(t.copyFailed, 'error');
+    }
   };
 
   const handleExportJson = () => {
@@ -172,7 +181,8 @@ export function ResultCard({ result }: ResultCardProps) {
         </p>
       </div>
 
-      {/* Action toolbar — hidden when printing */}
+      {/* Action toolbar — hidden when printing or when caller provides its own */}
+      {!hideToolbar && (
       <div className="flex items-center justify-end print:hidden">
         <ExportMenu
           onCopyMarkdown={handleCopyMarkdown}
@@ -183,6 +193,7 @@ export function ResultCard({ result }: ResultCardProps) {
           onPrint={handlePrint}
         />
       </div>
+      )}
 
       {/* Manday Banner */}
       <div className="print-banner bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-2xl p-5 sm:p-6 text-white shadow-lg">
@@ -204,7 +215,7 @@ export function ResultCard({ result }: ResultCardProps) {
       </div>
 
       {/* Scope of Work */}
-      <div className="print-card bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 p-5 sm:p-6 shadow-sm">
+      <div className="print-card bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 shadow-sm">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-700 dark:text-green-400 text-xs font-bold flex-shrink-0">
             {sow.length}
@@ -226,10 +237,10 @@ export function ResultCard({ result }: ResultCardProps) {
       </div>
 
       {/* Modules Breakdown */}
-      <div className="print-card bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-        <div className="px-5 sm:px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+      <div className="print-card bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm overflow-hidden">
+        <div className="px-5 sm:px-6 py-4 border-b border-gray-100 dark:border-zinc-700 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t.modulesBreakdown}</h3>
-          <span className="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+          <span className="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-zinc-700 px-2 py-0.5 rounded-full">
             {modules.length} {t.moduleWord}
           </span>
         </div>
@@ -249,7 +260,7 @@ export function ResultCard({ result }: ResultCardProps) {
             </div>
           ))}
           {/* Mobile total */}
-          <div className="px-5 py-3.5 flex items-center justify-between bg-gray-50 dark:bg-slate-800/60">
+          <div className="px-5 py-3.5 flex items-center justify-between bg-gray-50 dark:bg-zinc-700/50">
             <span className="text-sm font-semibold text-gray-900 dark:text-white">{t.total}</span>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 dark:bg-blue-500 text-white">
               {totalMandays} {lang === 'th' ? 'วัน' : 'd'}
@@ -260,7 +271,7 @@ export function ResultCard({ result }: ResultCardProps) {
         {/* Desktop + print: table layout */}
         <div className="hidden sm:block print:block overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-100 dark:border-slate-700">
+            <thead className="bg-gray-50 dark:bg-zinc-700/50 border-b border-gray-100 dark:border-zinc-700">
               <tr>
                 <th className="px-5 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{t.colModule}</th>
                 <th className="px-5 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{t.colDescription}</th>
@@ -269,7 +280,7 @@ export function ResultCard({ result }: ResultCardProps) {
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
               {modules.map((module: Module, i: number) => (
-                <tr key={i} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-700/50">
                   <td className="px-5 sm:px-6 py-3.5 font-medium text-gray-900 dark:text-white align-top">
                     <Bilingual value={module.name} className="whitespace-nowrap" />
                   </td>
@@ -284,7 +295,7 @@ export function ResultCard({ result }: ResultCardProps) {
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
+            <tfoot className="bg-gray-50 dark:bg-zinc-700/50 border-t border-gray-100 dark:border-zinc-700">
               <tr>
                 <td colSpan={2} className="px-5 sm:px-6 py-3 text-sm font-semibold text-gray-900 dark:text-white">{t.total}</td>
                 <td className="px-5 sm:px-6 py-3 text-right">

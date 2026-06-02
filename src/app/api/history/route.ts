@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const estimations = await prisma.estimation.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 200,
     });
     return NextResponse.json(estimations);
   } catch (error) {

@@ -76,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${sarabun.variable} font-sans min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100`}
+        className={`${sarabun.variable} font-sans min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100`}
       >
         <ThemeProvider>
           <LanguageProvider>

@@ -5,13 +5,14 @@ import { useLang } from '@/contexts/LanguageContext';
 
 interface UploadZoneProps {
   onFileSelect: (file: File) => void;
+  onRemove?: () => void;
   disabled?: boolean;
   selectedFile?: File | null;
 }
 
 const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.m4a'];
 
-export function UploadZone({ onFileSelect, disabled, selectedFile }: UploadZoneProps) {
+export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: UploadZoneProps) {
   const { t } = useLang();
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export function UploadZone({ onFileSelect, disabled, selectedFile }: UploadZoneP
           disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
           isDragging
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-            : 'border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-slate-800/50',
+            : 'border-gray-300 dark:border-zinc-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-zinc-700/50',
         ].join(' ')}
       >
         <input
@@ -122,16 +123,31 @@ export function UploadZone({ onFileSelect, disabled, selectedFile }: UploadZoneP
               <p className="text-xs text-gray-500 dark:text-slate-400">
                 {formatSize(selectedFile.size)}
               </p>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                {t.fileReady}
-              </span>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {t.fileReady}
+                </span>
+                {onRemove && !disabled && (
+                  <button
+                    type="button"
+                    onClick={e => { e.stopPropagation(); onRemove(); }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    style={{ transition: 'color 150ms ease, background-color 150ms ease' }}
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    {t.removeFile}
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-1">

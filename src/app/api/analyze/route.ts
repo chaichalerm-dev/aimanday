@@ -22,10 +22,10 @@ function getGroq(): Groq {
 export async function POST(request: NextRequest) {
   // Rate limit: 10 LLM analysis requests per minute per IP
   const ip = getClientIp(request);
-  const rl = checkRateLimit(`analyze:${ip}`, 10, 60_000);
-  const rlHeaders = rateLimitHeaders(rl);
+  const rateLimitResult = checkRateLimit(`analyze:${ip}`, 10, 60_000);
+  const rlHeaders = rateLimitHeaders(rateLimitResult);
 
-  if (!rl.allowed) {
+  if (!rateLimitResult.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please wait before trying again.' },
       { status: 429, headers: rlHeaders },

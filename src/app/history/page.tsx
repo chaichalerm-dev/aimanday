@@ -1,29 +1,21 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { useLang } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { calculateReliability } from '@/lib/reliability';
 import { downloadJson, downloadMarkdown, downloadCsv, safeBaseName } from '@/lib/download';
-import { pickText, plainText, type MaybeBilingual } from '@/lib/bilingual';
+import { plainText } from '@/lib/bilingual';
 import { ExportMenu } from '@/components/ExportMenu';
+import { AudioPreview } from '@/components/AudioPreview';
 import { Bilingual } from '@/components/Bilingual';
-import type { Module } from '@/lib/analyzer';
-
-interface HistoryItem {
-  id: string;
-  audioName: string;
-  transcript: string;
-  sow: MaybeBilingual[];
-  mandayMin: number;
-  mandayMax: number;
-  modules: Module[];
-  assumptions: MaybeBilingual[];
-  createdAt: string;
-}
+import { buildPrintHTML } from '@/lib/print';
+import { buildItemJson, buildItemMarkdown, buildItemCsv } from '@/lib/historyExport';
+import type { HistoryItem } from '@/types/history';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -32,133 +24,6 @@ function formatDate(iso: string, lang: 'th' | 'en'): string {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
-}
-
-// ── Per-item action helpers ───────────────────────────────────────────
-function buildItemJson(item: HistoryItem) {
-  return {
-    audioName: item.audioName,
-    sow: item.sow,
-    manday_estimate: { min: item.mandayMin, max: item.mandayMax },
-    modules: item.modules,
-    assumptions: item.assumptions,
-    createdAt: item.createdAt,
-  };
-}
-
-function buildItemMarkdown(item: HistoryItem, t: ReturnType<typeof import('@/contexts/LanguageContext').useLang>['t'], lang: 'th' | 'en'): string {
-  const total = item.modules.reduce((s, m) => s + m.manday, 0);
-  const lines: string[] = [
-    `# Manday Estimate: ${item.mandayMin}–${item.mandayMax} ${lang === 'th' ? 'วันทำงาน' : 'mandays'}`,
-    `> ${item.audioName}`, '',
-    `## ${t.scopeOfWork}`,
-    ...item.sow.map(s => `- ${plainText(s, lang)}`), '',
-    `## ${t.modulesBreakdown}`,
-    `| ${t.colModule} | ${t.colDescription} | ${t.colMandays} |`,
-    '|---|---|---|',
-    ...item.modules.map(m => `| ${plainText(m.name, lang)} | ${plainText(m.description, lang)} | ${m.manday} |`),
-    `| **${t.total}** | | **${total}** |`,
-  ];
-  if (item.assumptions.length > 0) {
-    lines.push('', `## ${t.assumptions}`, ...item.assumptions.map(a => `- ${plainText(a, lang)}`));
-  }
-  return lines.join('\n');
-}
-
-function buildItemCsv(item: HistoryItem, t: ReturnType<typeof import('@/contexts/LanguageContext').useLang>['t'], lang: 'th' | 'en'): string {
-  const total = item.modules.reduce((s, m) => s + m.manday, 0);
-  return [
-    [t.colModule, t.colDescription, t.colMandays],
-    ...item.modules.map(m => [plainText(m.name, lang), plainText(m.description, lang), String(m.manday)]),
-    [t.total, '', String(total)],
-  ].map(row => row.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
-}
-
-function buildPrintHTML(
-  item: HistoryItem,
-  t: ReturnType<typeof import('@/contexts/LanguageContext').useLang>['t'],
-  lang: 'th' | 'en',
-  reliabilityScore: number,
-  reliabilityLevel: string,
-  reliabilityLabel: string,
-): string {
-  const total = item.modules.reduce((s, m) => s + m.manday, 0);
-  const dateStr = new Date(item.createdAt).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', {
-    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  });
-  const relColor = reliabilityLevel === 'high' ? '#86efac' : reliabilityLevel === 'medium' ? '#fde047' : '#fca5a5';
-  const relBg = reliabilityLevel === 'high' ? 'rgba(34,197,94,0.2)' : reliabilityLevel === 'medium' ? 'rgba(234,179,8,0.2)' : 'rgba(239,68,68,0.2)';
-
-  // Render bilingual: primary + small secondary translation
-  const bi = (v: MaybeBilingual) => {
-    const { primary, secondary } = pickText(v, lang);
-    return secondary ? `${primary}<span class="sub">${secondary}</span>` : primary;
-  };
-
-  return `<!DOCTYPE html>
-<html lang="${lang}">
-<head>
-  <meta charset="UTF-8">
-  <title>AI Manday Estimator – ${item.audioName}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Sarabun',sans-serif;color:#111827;padding:32px;max-width:800px;margin:0 auto;font-size:14px;line-height:1.7}
-    .hdr{border-bottom:2px solid #e5e7eb;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start}
-    .hdr h1{font-size:20px;font-weight:700}.hdr-sub{font-size:12px;color:#6b7280;margin-top:4px}
-    .hdr-right{text-align:right;font-size:12px;color:#9ca3af}
-    .banner{background:#2563eb;color:#fff;border-radius:12px;padding:20px 24px;margin-bottom:14px}
-    .banner-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7);margin-bottom:6px}
-    .banner-num{font-size:40px;font-weight:700;display:flex;align-items:baseline;gap:8px}
-    .banner-unit{font-size:16px;color:rgba(255,255,255,.7)}
-    .banner-foot{font-size:12px;color:rgba(255,255,255,.7);margin-top:6px}
-    .rel-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:8px;background:${relBg};color:${relColor}}
-    .sec{border:1px solid #e5e7eb;border-radius:10px;padding:16px 20px;margin-bottom:12px}
-    .sec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:10px}
-    .sow-list{list-style:none}
-    .sow-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:7px}
-    .sow-check{width:16px;height:16px;border-radius:50%;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;margin-top:2px}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th{background:#f9fafb;padding:7px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;border:1px solid #e5e7eb}
-    td{padding:7px 12px;border:1px solid #e5e7eb;color:#374151}
-    tfoot td{background:#f9fafb;font-weight:600}
-    .badge{background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-    .badge-dark{background:#1d4ed8;color:#fff}
-    .assump{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:16px 20px;margin-bottom:12px}
-    .assump .sec-title{color:#92400e}
-    .assump-item{display:flex;gap:10px;margin-bottom:7px;color:#92400e;font-size:13px}
-    .assump-num{width:18px;height:18px;border-radius:50%;background:#fde68a;color:#92400e;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-    .sub{display:block;font-size:11px;color:#9ca3af;font-weight:400;margin-top:1px}
-    .assump .sub{color:#b45309}
-    @media print{body{padding:0}@page{size:A4;margin:15mm 20mm}}
-  </style>
-</head>
-<body>
-<div class="hdr">
-  <div><h1>AI Manday Estimator</h1><div class="hdr-sub">${t.printReportTitle}</div></div>
-  <div class="hdr-right"><div>${item.audioName}</div><div>${t.printGeneratedOn} ${dateStr}</div></div>
-</div>
-<div class="banner">
-  <div class="banner-lbl">${t.totalManday}</div>
-  <div class="banner-num"><span>${item.mandayMin}</span><span style="color:rgba(255,255,255,.4)">–</span><span>${item.mandayMax}</span><span class="banner-unit">${t.mandays}</span></div>
-  <div class="banner-foot">${t.basedOn} ${item.modules.length} ${t.moduleWord} · ${t.sumOfModules}: ${total}</div>
-  <div class="rel-badge">${reliabilityScore}% · ${reliabilityLabel}</div>
-</div>
-<div class="sec">
-  <div class="sec-title">${t.scopeOfWork} (${item.sow.length})</div>
-  <ul class="sow-list">${item.sow.map(s => `<li class="sow-item"><span class="sow-check">✓</span><span>${bi(s)}</span></li>`).join('')}</ul>
-</div>
-<div class="sec">
-  <div class="sec-title">${t.modulesBreakdown}</div>
-  <table>
-    <thead><tr><th>${t.colModule}</th><th>${t.colDescription}</th><th style="text-align:right">${t.colMandays}</th></tr></thead>
-    <tbody>${item.modules.map(m => `<tr><td><strong>${bi(m.name)}</strong></td><td>${bi(m.description)}</td><td style="text-align:right"><span class="badge">${m.manday}</span></td></tr>`).join('')}</tbody>
-    <tfoot><tr><td colspan="2">${t.total}</td><td style="text-align:right"><span class="badge badge-dark">${total}</span></td></tr></tfoot>
-  </table>
-</div>
-${item.assumptions.length > 0 ? `<div class="assump"><div class="sec-title">${t.assumptions}</div>${item.assumptions.map((a, i) => `<div class="assump-item"><span class="assump-num">${i + 1}</span><span>${bi(a)}</span></div>`).join('')}</div>` : ''}
-<script>window.onload=function(){window.print()}<\/script>
-</body></html>`;
 }
 
 // Smart page range: always show first, last, and ±1 around current
@@ -192,6 +57,8 @@ export default function HistoryPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
+  const [expandedAudio, setExpandedAudio] = useState<File | null>(null);
+  const expandedAudioInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,6 +75,8 @@ export default function HistoryPage() {
 
   // Reset to first page when search changes
   useEffect(() => { setPage(0); }, [search]);
+  // Clear audio when a different item is expanded
+  useEffect(() => { setExpandedAudio(null); }, [expandedId]);
 
   const filteredItems = useMemo(() =>
     search.trim()
@@ -235,7 +104,8 @@ export default function HistoryPage() {
     setDeletingId(id);
     setConfirmingId(null);
     try {
-      await fetch(`/api/history/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
       setItems(prev => prev.filter(item => item.id !== id));
       // Keep cache in sync so the next visit doesn't show the deleted item
       if (historyCache) historyCache = historyCache.filter(item => item.id !== id);
@@ -249,13 +119,21 @@ export default function HistoryPage() {
   };
 
   const handleCopyJsonItem = async (item: HistoryItem) => {
-    await navigator.clipboard.writeText(JSON.stringify(buildItemJson(item), null, 2));
-    showToast(t.copied);
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(buildItemJson(item), null, 2));
+      showToast(t.copied);
+    } catch {
+      showToast(t.copyFailed, 'error');
+    }
   };
 
   const handleCopyMarkdownItem = async (item: HistoryItem) => {
-    await navigator.clipboard.writeText(buildItemMarkdown(item, t, lang));
-    showToast(t.copied);
+    try {
+      await navigator.clipboard.writeText(buildItemMarkdown(item, t, lang));
+      showToast(t.copied);
+    } catch {
+      showToast(t.copyFailed, 'error');
+    }
   };
 
   const itemBaseName = (item: HistoryItem) =>
@@ -297,6 +175,12 @@ export default function HistoryPage() {
     router.push('/');
   };
 
+  const handleExpandedAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setExpandedAudio(file);
+    e.target.value = '';
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -316,7 +200,7 @@ export default function HistoryPage() {
               <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t.historySubtitle}</p>
             </div>
             {items.length > 0 && (
-              <span className="text-xs text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+              <span className="text-xs text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-zinc-700 px-3 py-1.5 rounded-full">
                 {items.length} {t.items}
               </span>
             )}
@@ -334,7 +218,7 @@ export default function HistoryPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t.searchPlaceholder}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
             {search && (
               <button
@@ -361,7 +245,7 @@ export default function HistoryPage() {
         {/* Empty state — no items at all */}
         {!loading && items.length === 0 && (
           <div className="text-center py-20">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -380,7 +264,7 @@ export default function HistoryPage() {
         {/* No search results */}
         {!loading && items.length > 0 && filteredItems.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-14 h-14 bg-gray-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <div className="w-14 h-14 bg-gray-100 dark:bg-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
               <svg className="w-7 h-7 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -439,8 +323,8 @@ export default function HistoryPage() {
                 return (
                   <div
                     key={item.id}
-                    className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm overflow-hidden ${
-                      isDeleting ? 'opacity-40 pointer-events-none' : 'border-gray-200 dark:border-slate-700'
+                    className={`bg-white dark:bg-zinc-800 rounded-2xl border shadow-sm overflow-hidden ${
+                      isDeleting ? 'opacity-40 pointer-events-none' : 'border-gray-200 dark:border-zinc-700'
                     }`}
                   >
                     <div className="p-5 sm:p-6">
@@ -480,7 +364,7 @@ export default function HistoryPage() {
                           {isConfirming ? (
                             <div className="flex items-center gap-1">
                               <button onClick={() => handleDeleteExecute(item.id)} className="px-2.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg">{t.deleteConfirm}</button>
-                              <button onClick={handleDeleteCancel} className="px-2.5 py-1.5 text-xs font-medium border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 rounded-lg">{t.deleteCancel}</button>
+                              <button onClick={handleDeleteCancel} className="px-2.5 py-1.5 text-xs font-medium border border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-600 dark:text-slate-400 rounded-lg">{t.deleteCancel}</button>
                             </div>
                           ) : (
                             <button
@@ -502,7 +386,7 @@ export default function HistoryPage() {
                           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${reliabilityCfg.dot}`} style={{ transition: 'none' }} />
                           {reliability.score}% · {reliability.level === 'high' ? t.reliabilityHigh : reliability.level === 'medium' ? t.reliabilityMedium : t.reliabilityLow}
                         </span>
-                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-zinc-700 px-2.5 py-1 rounded-full">
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                           </svg>
@@ -522,7 +406,7 @@ export default function HistoryPage() {
                       <div className="mt-4 flex gap-2">
                         <button
                           onClick={() => toggleExpand(item.id)}
-                          className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800"
+                          className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-700"
                         >
                           {isOpen
                             ? <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>{t.hideDetail}</>
@@ -543,7 +427,52 @@ export default function HistoryPage() {
 
                     {/* Expanded details */}
                     {isOpen && (
-                      <div className="border-t border-gray-100 dark:border-slate-700 px-5 sm:px-6 py-5 space-y-5">
+                      <div className="border-t border-gray-100 dark:border-zinc-700 px-5 sm:px-6 py-5 space-y-5">
+                        {/* Audio player */}
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.playAudio}</p>
+                          {expandedAudio ? (
+                            <>
+                              <AudioPreview file={expandedAudio} />
+                              <button
+                                onClick={() => setExpandedAudio(null)}
+                                className="mt-2.5 text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 flex items-center gap-1"
+                              >
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                {t.changeAudioFile}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <input
+                                ref={expandedAudioInputRef}
+                                type="file"
+                                accept=".mp3,.wav,.m4a"
+                                className="hidden"
+                                onChange={handleExpandedAudioSelect}
+                              />
+                              <button
+                                onClick={() => expandedAudioInputRef.current?.click()}
+                                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-dashed border-gray-200 dark:border-zinc-700 text-left hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-zinc-700 group"
+                              >
+                                <svg className="w-5 h-5 flex-shrink-0 text-gray-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                                </svg>
+                                <div className="min-w-0">
+                                  <span className="block text-sm text-gray-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                    {t.selectAudioFile}
+                                  </span>
+                                  <span className="block text-xs text-gray-400 dark:text-slate-500 truncate mt-0.5">
+                                    {item.audioName}
+                                  </span>
+                                </div>
+                              </button>
+                            </>
+                          )}
+                        </div>
+
                         <div>
                           <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.scopeOfWork}</p>
                           <ul className="space-y-2">
@@ -564,7 +493,7 @@ export default function HistoryPage() {
                           <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.modulesBreakdown}</p>
 
                           {/* Mobile: card layout */}
-                          <div className="sm:hidden rounded-xl border border-gray-200 dark:border-slate-700 divide-y divide-gray-100 dark:divide-slate-700 overflow-hidden">
+                          <div className="sm:hidden rounded-xl border border-gray-200 dark:border-zinc-700 divide-y divide-gray-100 dark:divide-slate-700 overflow-hidden">
                             {item.modules.map((m, i) => (
                               <div key={i} className="px-4 py-3">
                                 <div className="flex items-start justify-between gap-3">
@@ -574,16 +503,16 @@ export default function HistoryPage() {
                                 <div className="mt-1"><Bilingual value={m.description} className="text-sm text-gray-600 dark:text-slate-400" /></div>
                               </div>
                             ))}
-                            <div className="px-4 py-3 flex items-center justify-between bg-gray-50 dark:bg-slate-800">
+                            <div className="px-4 py-3 flex items-center justify-between bg-gray-50 dark:bg-zinc-700">
                               <span className="text-xs font-semibold text-gray-900 dark:text-white">{t.total}</span>
                               <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{totalMandays} {lang === 'th' ? 'วัน' : 'd'}</span>
                             </div>
                           </div>
 
                           {/* Desktop: table layout */}
-                          <div className="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700">
+                          <div className="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
                             <table className="w-full text-sm">
-                              <thead className="bg-gray-50 dark:bg-slate-800">
+                              <thead className="bg-gray-50 dark:bg-zinc-700">
                                 <tr>
                                   <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">{t.colModule}</th>
                                   <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">{t.colDescription}</th>
@@ -601,7 +530,7 @@ export default function HistoryPage() {
                                   </tr>
                                 ))}
                               </tbody>
-                              <tfoot className="bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
+                              <tfoot className="bg-gray-50 dark:bg-zinc-700 border-t border-gray-200 dark:border-zinc-700">
                                 <tr>
                                   <td colSpan={2} className="px-4 py-2.5 text-xs font-semibold text-gray-900 dark:text-white">{t.total}</td>
                                   <td className="px-4 py-2.5 text-right">
@@ -634,11 +563,11 @@ export default function HistoryPage() {
                             </svg>
                             {t.transcriptLabel}
                           </summary>
-                          <p className="mt-3 text-sm text-gray-600 dark:text-slate-400 leading-relaxed bg-gray-50 dark:bg-slate-800 rounded-xl p-4">{item.transcript}</p>
+                          <p className="mt-3 text-sm text-gray-600 dark:text-slate-400 leading-relaxed bg-gray-50 dark:bg-zinc-700 rounded-xl p-4">{item.transcript}</p>
                         </details>
 
                         {/* Action toolbar */}
-                        <div className="flex items-center justify-end pt-4 border-t border-gray-100 dark:border-slate-700">
+                        <div className="flex items-center justify-end pt-4 border-t border-gray-100 dark:border-zinc-700">
                           <ExportMenu
                             onCopyMarkdown={() => handleCopyMarkdownItem(item)}
                             onCopyJson={() => handleCopyJsonItem(item)}
@@ -665,7 +594,7 @@ export default function HistoryPage() {
                   <button
                     onClick={() => setPage(p => Math.max(0, p - 1))}
                     disabled={page === 0}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -684,7 +613,7 @@ export default function HistoryPage() {
                         className={`w-8 h-8 text-xs font-semibold rounded-lg border ${
                           page === p
                             ? 'bg-blue-600 border-blue-600 text-white'
-                            : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                            : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700'
                         }`}
                       >
                         {p + 1}
@@ -696,7 +625,7 @@ export default function HistoryPage() {
                   <button
                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                     disabled={page === totalPages - 1}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white"
                   >
                     {t.nextPage}
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -710,9 +639,7 @@ export default function HistoryPage() {
         )}
       </main>
 
-      <footer className="border-t border-gray-200 dark:border-slate-800 py-4 text-center">
-        <p className="text-xs text-gray-400 dark:text-slate-600">Powered by Groq Whisper &amp; Llama 3.3 · Stored in MongoDB</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

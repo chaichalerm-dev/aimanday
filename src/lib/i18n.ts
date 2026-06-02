@@ -94,6 +94,23 @@ export interface Translations {
   generating: string;
   printReportTitle: string;
   printGeneratedOn: string;
+  // Audio replay in history
+  playAudio: string;
+  selectAudioFile: string;
+  changeAudioFile: string;
+  // Remove file
+  removeFile: string;
+  // Result divider
+  resultLabel: string;
+  // Transcript word counter
+  wordsUnit: string;
+  // Reliability tooltip labels
+  reliabilityAssumptions: string;
+  reliabilityRangeSpread: string;
+  reliabilityDetailBonus: string;
+  reliabilityScore: string;
+  // Copy error
+  copyFailed: string;
   // Errors
   invalidFileType: string;
 }
@@ -181,6 +198,17 @@ export const th: Translations = {
   generating: 'กำลังสร้าง…',
   printReportTitle: 'รายงานประมาณการโครงการ',
   printGeneratedOn: 'สร้างเมื่อ',
+  removeFile: 'ลบออก',
+  playAudio: 'เสียงต้นฉบับ',
+  selectAudioFile: 'เลือกไฟล์เสียงต้นฉบับ (.mp3 / .wav / .m4a)',
+  changeAudioFile: 'เปลี่ยนไฟล์',
+  resultLabel: 'ผลลัพธ์',
+  wordsUnit: 'คำ',
+  reliabilityAssumptions: 'สมมติฐาน',
+  reliabilityRangeSpread: 'ช่วง Range',
+  reliabilityDetailBonus: 'โบนัสรายละเอียด',
+  reliabilityScore: 'คะแนน',
+  copyFailed: 'คัดลอกไม่สำเร็จ',
   invalidFileType: 'ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือก .mp3, .wav หรือ .m4a',
 };
 
@@ -267,5 +295,16 @@ export const en: Translations = {
   generating: 'Generating…',
   printReportTitle: 'Project Estimation Report',
   printGeneratedOn: 'Generated on',
+  removeFile: 'Remove',
+  playAudio: 'Original Audio',
+  selectAudioFile: 'Select original audio file (.mp3 / .wav / .m4a)',
+  changeAudioFile: 'Change file',
+  resultLabel: 'Result',
+  wordsUnit: 'words',
+  reliabilityAssumptions: 'Assumptions',
+  reliabilityRangeSpread: 'Range spread',
+  reliabilityDetailBonus: 'Detail bonus',
+  reliabilityScore: 'Score',
+  copyFailed: 'Copy failed',
   invalidFileType: 'Invalid file type. Please upload .mp3, .wav, or .m4a',
 };

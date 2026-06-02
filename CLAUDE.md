@@ -41,7 +41,7 @@ DATABASE_URL="mongodb+srv://...mongodb.net/aimanday?appName=Cluster0"
 
 - **Windows + PowerShell** — ใช้ syntax `$env:VAR`, `;` แทน `&&`
 - working directory: `C:\xampp\htdocs\myproject\aimanday`
-- ยังไม่ได้ init git / ยังไม่ได้ push ขึ้น GitHub (Deliverable ที่เหลือ)
+- git initialized + pushed ขึ้น GitHub แล้ว (branch: master)
 
 ## โครงสร้างโปรเจกต์
 
@@ -64,23 +64,28 @@ src/
 ├── components/
 │   ├── Header.tsx                 # fixed header + spacer, nav (ซ่อนบน mobile), TH/EN + theme toggle, logo→home
 │   ├── BottomNav.tsx              # bottom tab bar เฉพาะ mobile/tablet (md:hidden): หน้าหลัก/ประวัติ/วิธีใช้
-│   ├── UploadZone.tsx             # drag & drop
-│   ├── AudioPreview.tsx           # custom audio player + waveform
+│   ├── Footer.tsx                 # shared footer (ใช้ร่วมทุกหน้า — prop className สำหรับ print:hidden)
+│   ├── UploadZone.tsx             # drag & drop + ปุ่ม "ลบออก" (prop onRemove?: () => void)
+│   ├── AudioPreview.tsx           # custom audio player + waveform (ใช้ 3 จุด: upload, transcript review, history detail/expanded)
 │   ├── ResultCard.tsx             # SOW/Manday/Modules/Assumptions + ExportMenu + ReliabilityBadge (mobile=cards, desktop=table)
 │   ├── ExportMenu.tsx             # dropdown รวม Copy/Download/Print — ใช้ React Portal กัน overflow clip
 │   └── Bilingual.tsx              # แสดงข้อความ 2 ภาษา (หลัก + รองตัวเล็ก)
 ├── contexts/
 │   ├── ThemeContext.tsx           # dark/light (อ่าน initial จาก DOM class ที่ inline script ตั้งไว้)
-│   ├── LanguageContext.tsx        # TH/EN
+│   ├── LanguageContext.tsx        # TH/EN — persist ภาษาเลือกลง localStorage (reload ไม่ reset)
 │   └── ToastContext.tsx           # toast + container อยู่ในตัว provider
+├── types/
+│   └── history.ts                 # HistoryItem interface — shared ระหว่าง history/page.tsx และ history/[id]/page.tsx
 └── lib/
     ├── prisma.ts                  # singleton
-    ├── whisper.ts                 # Groq Whisper helper
-    ├── analyzer.ts                # SYSTEM_PROMPT, buildUserPrompt, tryParseJSON (exported), types
-    ├── reliability.ts             # คำนวณ confidence score
+    ├── whisper.ts                 # Groq Whisper helper (lazy singleton)
+    ├── analyzer.ts                # SYSTEM_PROMPT, buildUserPrompt, tryParseJSON — types เท่านั้น ไม่มี Groq instance
+    ├── reliability.ts             # คำนวณ confidence score (pure function)
     ├── rateLimit.ts               # in-memory sliding window
     ├── bilingual.ts               # pickText/plainText — เลือกภาษาหลัก/รอง
     ├── download.ts                # downloadJson/Markdown/Csv + safeBaseName (UTF-8 BOM)
+    ├── print.ts                   # buildPrintHTML — HTML template สำหรับ history list print (ย้ายออกจาก page component)
+    ├── historyExport.ts           # buildItemJson/Markdown/Csv — shared ระหว่าง history/page.tsx และ history/[id]/page.tsx
     └── i18n.ts                    # Translations interface + th/en objects
 prisma/schema.prisma               # model Estimation
 ```
@@ -97,7 +102,7 @@ prisma/schema.prisma               # model Estimation
 - frontend อ่านด้วย `response.body.getReader()` แสดง terminal live
 - ถ้า error กลางทาง stream ส่ง `__STREAM_ERROR__` sentinel
 - บันทึก DB เกิด server-side หลัง stream จบ
-- `parseEstimation()` มีซ้ำใน `page.tsx` (client-safe) เพราะ import จาก analyzer.ts ไม่ได้ (มี server deps)
+- `parseEstimation()` ใน `page.tsx` เป็น client-side duplicate ของ `tryParseJSON` — แยกไว้เพื่อให้ client component ไม่ต้อง import จาก module ฝั่ง server
 
 ### Bilingual (เนื้อหาจากเสียง 2 ภาษา)
 - LLM ถูกสั่งให้ส่งทุก text field เป็น `{ th, en }` (มีตัวอย่างใน prompt ให้ชัด)
@@ -108,19 +113,26 @@ prisma/schema.prisma               # model Estimation
 
 ### JSON Parsing (analyzer.ts)
 - strip markdown fences → `JSON.parse` → validate ว่าเป็น array + manday เป็น number (lenient ไม่บังคับ th/en)
-- retry 1 ครั้งถ้า parse ล้มเหลว (non-streaming path)
+- `analyzer.ts` export เฉพาะ types + pure functions (ไม่มี Groq instance) — Groq client อยู่ใน `whisper.ts` และ `analyze/route.ts` เท่านั้น (lazy singleton)
 
 ### i18n
 - ทุก label เพิ่มใน `Translations` interface + ทั้ง `th` และ `en` object ใน `lib/i18n.ts`
 - ใช้ผ่าน `useLang()` → `t.keyName`
 - string ที่มี placeholder ใช้ `.replace('{key}', value)` (เช่น `showingOf`)
 - หน้า guide เก็บเนื้อหายาวเป็น object `content[lang]` ในไฟล์เอง (ไม่ยัดลง i18n)
-- **ระวัง hardcoded English** — เคยพลาดคำว่า "assumptions" ใน badge ลืมใช้ `t.assumptionsShort`
+- **ระวัง hardcoded English** — tooltip ใน ReliabilityBadge เคยพลาด ตอนนี้ใช้ `t.reliabilityAssumptions` / `t.reliabilityRangeSpread` / `t.reliabilityDetailBonus` / `t.reliabilityScore` แล้ว
+- ภาษาที่เลือก persist ลง `localStorage` key `"lang"` — `LanguageContext` อ่าน initial state จาก localStorage (คล้าย Theme)
 
 ### Theme (ป้องกัน flash)
 - inline script ใน `<head>` ตั้ง `dark` class ก่อน first paint
 - `ThemeContext` อ่าน initial state จาก DOM class (ไม่ใช่ localStorage โดยตรง)
 - **darkMode: 'class'** ใน tailwind.config.ts — ต้อง restart dev server หลังแก้ config นี้
+- **Dark palette ใช้ `zinc`** (ไม่ใช่ `slate`) — zinc เป็น neutral warm gray ไม่มี blue tint ดูสบายตากว่า:
+  - Page body: `zinc-900` (#18181B)
+  - Cards/panels: `zinc-800` (#27272A)
+  - Inputs/secondary: `zinc-700` (#3F3F46)
+  - Borders: `zinc-700`
+  - Streaming terminal (`bg-slate-950` ไม่มี dark: prefix) ยังคงดำสนิทตามต้องการ
 
 ### Responsive / Mobile
 - **Header**: `fixed top-0` + spacer `h-14` (เลื่อนตามจอ); nav links ซ่อนบน mobile (`hidden md:flex`)
@@ -136,15 +148,27 @@ prisma/schema.prisma               # model Estimation
 
 ### Print/PDF
 - หน้าหลัก/detail: `window.print()` + CSS `@media print` + class `print-card`/`print-banner`/`print-assumptions` + force light mode
-- หน้า history list: `window.open()` สร้าง standalone HTML แล้ว auto-print (ไม่กระทบหน้าหลัก) — รวม bilingual ตัวเล็กด้วย
+- หน้า history list: `window.open()` สร้าง standalone HTML แล้ว auto-print — HTML template อยู่ใน `lib/print.ts` (`buildPrintHTML`) รวม bilingual ตัวเล็กด้วย
+
+### Shared types
+- `src/types/history.ts` export `HistoryItem` interface — ใช้ร่วมกันระหว่าง `history/page.tsx` และ `history/[id]/page.tsx` ป้องกัน drift
 
 ### History detail page
-- `/history/[id]` map record → `EstimationResult` แล้ว reuse `<ResultCard>` เต็มตัว (ได้ export/print/bilingual ฟรี)
+- `/history/[id]` มี page header รวม filename + date + **Re-analyze** + **ExportMenu** ไว้ด้วยกัน
+- ใช้ `<ResultCard hideToolbar>` เพื่อซ่อน toolbar ใน ResultCard (ป้องกัน duplicate) — prop `hideToolbar?: boolean` ใน ResultCard
+- Export handlers ใน detail page ใช้ `buildItemJson/Markdown/Csv` จาก `lib/historyExport.ts`
+- Print ใน detail page ใช้ `buildPrintHTML` (standalone window) ไม่ใช่ `window.print()` (CSS-based)
 - ชื่อไฟล์ในหน้า list เป็น `<Link>` ไป detail
 
 ### Rate Limiting
 - `lib/rateLimit.ts` in-memory sliding window 10 req/min/IP ต่อ endpoint (upload + analyze)
 - **หมายเหตุ:** reset ทุก cold start บน serverless (Vercel) — production จริงควรใช้ Redis
+
+### Idle Waveform Animation
+- `page.tsx` มี constants `WAVE_HEIGHTS`, `WAVE_DURATIONS`, `WAVE_DELAYS` (32 bars) นอก component
+- animation แสดงเฉพาะ `step === 'idle'` — ซ่อนทันทีที่ user เริ่ม interact
+- CSS class `.wave-bar` + `@keyframes waveBar` ใน `globals.css`
+- รองรับ `prefers-reduced-motion` ใน globals.css — หยุด animation อัตโนมัติ
 
 ## แนวทางการแก้โค้ด
 
@@ -158,6 +182,10 @@ prisma/schema.prisma               # model Estimation
 
 ## สถานะปัจจุบัน
 
-ระบบทำงานครบทุก requirement + bonus features เยอะมาก (streaming, editable transcript, history CRUD + detail page, search/pagination, reliability score, audio preview, toast, dark mode, TH/EN bilingual content, rate limiting, export JSON/MD/CSV/PDF, guide page + LINE OA, responsive + bottom nav)
+ระบบทำงานครบทุก requirement + bonus features เยอะมาก (streaming, editable transcript + audio replay, history CRUD + detail page + audio replay, search/pagination, reliability score, audio preview + remove file, idle waveform animation, toast, warm dark mode (zinc), TH/EN bilingual content + language persist, rate limiting, export JSON/MD/CSV/PDF, guide page + LINE OA, responsive + bottom nav)
 
-**สิ่งที่เหลือ:** init git + push ขึ้น GitHub (Deliverable ของโจทย์), deploy Vercel (optional)
+โค้ดผ่าน refactoring แล้ว: shared types, dead code ลบออก, error handling ครบ, i18n ครบทุก label
+
+source code อยู่บน GitHub แล้ว (Deliverable ส่งแล้ว)
+
+**สิ่งที่เหลือ:** deploy Vercel (optional)

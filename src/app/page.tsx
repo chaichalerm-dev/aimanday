@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { UploadZone } from '@/components/UploadZone';
 import { AudioPreview } from '@/components/AudioPreview';
 import { ResultCard } from '@/components/ResultCard';
@@ -10,6 +11,11 @@ import { useToast } from '@/contexts/ToastContext';
 import type { EstimationResult } from '@/lib/analyzer';
 
 type Step = 'idle' | 'transcribing' | 'transcribed' | 'analyzing' | 'done';
+
+// Deterministic waveform data — 32 bars with varied heights, speeds and offsets
+const WAVE_HEIGHTS  = [28,45,62,48,80,58,35,72,50,88,42,65,82,47,70,56,32,85,60,76,44,55,90,46,68,78,52,38,60,44,30,50];
+const WAVE_DURATIONS= [1.4,1.7,1.2,1.9,1.1,1.6,1.8,1.3,1.5,1.2,1.7,1.4,1.1,1.8,1.5,1.3,1.6,1.2,1.9,1.4,1.1,1.7,1.5,1.3,1.8,1.2,1.6,1.4,1.9,1.1,1.5,1.7];
+const WAVE_DELAYS   = [0,.3,.12,.5,.18,.4,.25,.07,.45,.22,.35,.1,.42,.28,.15,.5,.08,.38,.2,.12,.47,.33,.05,.43,.17,.27,.48,.1,.35,.22,.4,.15];
 
 // Client-safe JSON parser (no server imports)
 function parseEstimation(text: string): EstimationResult | null {
@@ -200,13 +206,13 @@ export default function Home() {
                 {t.sttStep}
               </span>
             </div>
-            <div className="w-8 h-px bg-gray-300 dark:bg-slate-600" />
+            <div className="w-8 h-px bg-gray-300 dark:bg-zinc-600" />
             <div className="flex items-center gap-2">
               <span
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                   step === 'analyzing'
                     ? 'bg-blue-600 text-white animate-pulse'
-                    : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
+                    : 'bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-slate-400'
                 }`}
                 style={{ transition: 'none' }}
               >
@@ -223,8 +229,8 @@ export default function Home() {
 
         {/* Upload card */}
         {(step === 'idle' || step === 'transcribing') && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-5 sm:p-8 mb-5">
-            <UploadZone onFileSelect={handleFileSelect} disabled={isProcessing} selectedFile={file} />
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-8 mb-5">
+            <UploadZone onFileSelect={handleFileSelect} onRemove={handleReset} disabled={isProcessing} selectedFile={file} />
 
             {/* Audio preview player */}
             {file && (
@@ -269,9 +275,31 @@ export default function Home() {
           </div>
         )}
 
+        {/* Ambient waveform — only on idle, purely decorative */}
+        {step === 'idle' && (
+          <div
+            className="flex items-end justify-center gap-0.5 h-12 mt-5 opacity-[0.22] dark:opacity-[0.14] pointer-events-none print:hidden"
+            aria-hidden
+          >
+            {WAVE_HEIGHTS.map((h, i) => (
+              <div
+                key={i}
+                className="wave-bar w-1 rounded-full bg-blue-500 dark:bg-blue-400"
+                style={{
+                  height: `${h}%`,
+                  transformOrigin: '50% 100%',
+                  transition: 'none',
+                  animationDuration: `${WAVE_DURATIONS[i]}s`,
+                  animationDelay: `${WAVE_DELAYS[i]}s`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Editable transcript card */}
         {(step === 'transcribed' || step === 'analyzing') && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-5 sm:p-8 mb-5">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-8 mb-5">
             {/* Re-analyze source banner */}
             {prefillAudioName && (
               <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
@@ -295,16 +323,22 @@ export default function Home() {
                 </h2>
                 <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t.editTranscriptHint}</p>
               </div>
-              <span className="flex-shrink-0 text-xs text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full">
-                {editedTranscript.trim().split(/\s+/).filter(Boolean).length} words
+              <span className="flex-shrink-0 text-xs text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-zinc-700 px-2 py-1 rounded-full">
+                {editedTranscript.trim().split(/\s+/).filter(Boolean).length} {t.wordsUnit}
               </span>
             </div>
+            {/* Audio replay — lets the user cross-check the transcript against the original recording */}
+            {file && (
+              <div className="mb-4">
+                <AudioPreview file={file} disabled={step === 'analyzing'} />
+              </div>
+            )}
             <textarea
               value={editedTranscript}
               onChange={e => setEditedTranscript(e.target.value)}
               disabled={step === 'analyzing'}
               rows={6}
-              className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-sm text-gray-800 dark:text-slate-200 p-4 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 p-4 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-60 disabled:cursor-not-allowed"
             />
 
             {/* Streaming terminal */}
@@ -356,7 +390,7 @@ export default function Home() {
               {step !== 'analyzing' && (
                 <button
                   onClick={handleRetranscribe}
-                  className="px-4 py-3 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-medium rounded-xl text-sm flex items-center gap-1.5"
+                  className="px-4 py-3 border border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-700 dark:text-slate-300 font-medium rounded-xl text-sm flex items-center gap-1.5"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -372,15 +406,15 @@ export default function Home() {
         {result && (
           <>
             <div className="flex items-center justify-between mb-4 print:hidden">
-              <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
-              <span className="px-3 text-xs text-gray-400 dark:text-slate-500 font-medium">Result</span>
-              <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
+              <div className="h-px flex-1 bg-gray-200 dark:bg-zinc-700" />
+              <span className="px-3 text-xs text-gray-400 dark:text-slate-500 font-medium">{t.resultLabel}</span>
+              <div className="h-px flex-1 bg-gray-200 dark:bg-zinc-700" />
             </div>
             <ResultCard result={result} />
             <div className="mt-5 text-center print:hidden">
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-medium rounded-xl text-sm"
+                className="px-6 py-2.5 border border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-700 dark:text-slate-300 font-medium rounded-xl text-sm"
               >
                 {t.reset}
               </button>
@@ -389,11 +423,7 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="border-t border-gray-200 dark:border-slate-800 py-4 text-center print:hidden">
-        <p className="text-xs text-gray-400 dark:text-slate-600">
-          Powered by Groq Whisper &amp; Llama 3.3 · Stored in MongoDB
-        </p>
-      </footer>
+      <Footer className="print:hidden" />
     </div>
   );
 }

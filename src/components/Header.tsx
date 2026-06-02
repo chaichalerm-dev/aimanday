@@ -14,14 +14,14 @@ export function Header() {
     <>
       {/* Spacer occupies the fixed header's height so content isn't hidden underneath */}
       <div className="h-14 print:hidden" aria-hidden />
-      <header className="fixed top-0 inset-x-0 z-50 border-b border-gray-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md print:hidden">
+      <header className="fixed top-0 inset-x-0 z-50 border-b border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md print:hidden">
       <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         {/* Logo + Nav */}
         <div className="flex items-center gap-1 sm:gap-4 min-w-0">
           <Link
             href="/"
             aria-label="AI Manday Estimator — กลับหน้าหลัก"
-            className="flex items-center gap-2 flex-shrink-0 rounded-lg -m-1 p-1 hover:bg-gray-100 dark:hover:bg-slate-800 active:scale-95 transition-transform"
+            className="flex items-center gap-2 flex-shrink-0 rounded-lg -m-1 p-1 hover:bg-gray-100 dark:hover:bg-zinc-700 active:scale-95 transition-transform"
           >
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -38,12 +38,16 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-0.5">
             <Link
               href="/"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 pathname === '/'
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
+                  : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
               {t.homeNav}
             </Link>
             <Link
@@ -51,7 +55,7 @@ export function Header() {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 pathname === '/history'
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
+                  : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,7 +69,7 @@ export function Header() {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 pathname === '/guide'
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
+                  : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,12 +84,12 @@ export function Header() {
         {/* Controls */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Language Toggle */}
-          <div className="flex items-center rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 p-0.5">
+          <div className="flex items-center rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-700 p-0.5">
             <button
               onClick={() => lang !== 'th' && toggleLang()}
               className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                 lang === 'th'
-                  ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-zinc-600 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
               }`}
             >
@@ -95,7 +99,7 @@ export function Header() {
               onClick={() => lang !== 'en' && toggleLang()}
               className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                 lang === 'en'
-                  ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-zinc-600 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
               }`}
             >
@@ -107,7 +111,7 @@ export function Header() {
           <button
             onClick={toggleTheme}
             aria-label="Toggle theme"
-            className="w-8 h-8 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700"
+            className="w-8 h-8 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-700 flex items-center justify-center text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-zinc-600"
           >
             {theme === 'dark' ? (
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

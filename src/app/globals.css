@@ -93,6 +93,26 @@
   .print-assumptions * { color: #92400e !important; }
 }
 
+/* ── Idle waveform animation ───────────────────────────── */
+@keyframes waveBar {
+  from { transform: scaleY(0.12); }
+  to   { transform: scaleY(1); }
+}
+
+.wave-bar {
+  animation-name: waveBar;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-bar {
+    animation: none !important;
+    transform: scaleY(0.5);
+  }
+}
+
 /* Smooth dark mode transitions — excludes transform/opacity to avoid breaking animations */
 *,
 *::before,
