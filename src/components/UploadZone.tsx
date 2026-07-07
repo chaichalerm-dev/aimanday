@@ -63,11 +63,6 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
     e.target.value = '';
   };
 
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-  };
-
   return (
     <div className="w-full">
       <div
@@ -76,7 +71,9 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={[
-          'relative border-2 border-dashed rounded-xl p-8 sm:p-12 text-center',
+          'relative border-2 border-dashed rounded-xl text-center',
+          // เลือกไฟล์แล้ว → strip กะทัดรัด (ชื่อ/ขนาดไฟล์แสดงใน AudioPreview ข้างใต้อยู่แล้ว)
+          selectedFile ? 'p-4' : 'p-8 sm:p-12',
           disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
           isDragging
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -92,64 +89,67 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
           disabled={disabled}
         />
 
-        <div className="flex flex-col items-center gap-3">
-          <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-              isDragging
-                ? 'bg-blue-200 dark:bg-blue-700/50'
-                : 'bg-blue-100 dark:bg-blue-900/40'
-            }`}
-          >
-            <svg
-              className="w-7 h-7 text-blue-600 dark:text-blue-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {selectedFile ? (
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <div
+              className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                isDragging
+                  ? 'bg-blue-200 dark:bg-blue-700/50'
+                  : 'bg-blue-100 dark:bg-blue-900/40'
+              }`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-              />
-            </svg>
-          </div>
-
-          {selectedFile ? (
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-xs">
-                {selectedFile.name}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-slate-400">
-                {formatSize(selectedFile.size)}
-              </p>
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {t.fileReady}
-                </span>
-                {onRemove && !disabled && (
-                  <button
-                    type="button"
-                    onClick={e => { e.stopPropagation(); onRemove(); }}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    style={{ transition: 'color 150ms ease, background-color 150ms ease' }}
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    {t.removeFile}
-                  </button>
-                )}
-              </div>
+              <svg
+                className="w-4 h-4 text-blue-600 dark:text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
+                />
+              </svg>
             </div>
-          ) : (
+            <span className="text-xs text-gray-500 dark:text-slate-400">{t.changeFile}</span>
+            {onRemove && !disabled && (
+              <button
+                type="button"
+                onClick={e => { e.stopPropagation(); onRemove(); }}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                style={{ transition: 'color 150ms ease, background-color 150ms ease' }}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {t.removeFile}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3">
+            <div
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                isDragging
+                  ? 'bg-blue-200 dark:bg-blue-700/50'
+                  : 'bg-blue-100 dark:bg-blue-900/40'
+              }`}
+            >
+              <svg
+                className="w-7 h-7 text-blue-600 dark:text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
+                />
+              </svg>
+            </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700 dark:text-slate-300">
                 {t.dropHere}{' '}
@@ -157,8 +157,8 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
               </p>
               <p className="text-xs text-gray-400 dark:text-slate-500">{t.supports}</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {error && (

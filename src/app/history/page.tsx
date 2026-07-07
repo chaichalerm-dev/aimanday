@@ -40,6 +40,12 @@ function getPageNumbers(current: number, total: number): (number | 'ellipsis')[]
   return result;
 }
 
+const RELIABILITY_CFG = {
+  high:   { bg: 'bg-green-100 dark:bg-green-900/30',  text: 'text-green-700 dark:text-green-400',  dot: 'bg-green-500'  },
+  medium: { bg: 'bg-yellow-100 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
+  low:    { bg: 'bg-red-100 dark:bg-red-900/20',       text: 'text-red-700 dark:text-red-400',       dot: 'bg-red-500'    },
+} as const;
+
 // Module-level cache — survives client-side navigation within the session.
 // Lets the page render instantly on revisit while it refreshes in the background.
 let historyCache: HistoryItem[] | null = null;
@@ -77,6 +83,23 @@ export default function HistoryPage() {
   useEffect(() => { setPage(0); }, [search]);
   // Clear audio when a different item is expanded
   useEffect(() => { setExpandedAudio(null); }, [expandedId]);
+
+  // คำนวณครั้งเดียวต่อชุดข้อมูล — ไม่ต้องคิดใหม่ทุก keystroke ของ search/เปลี่ยนหน้า/expand
+  const reliabilityById = useMemo(
+    () =>
+      new Map(
+        items.map(item => [
+          item.id,
+          calculateReliability({
+            sow: item.sow,
+            manday_estimate: { min: item.mandayMin, max: item.mandayMax },
+            modules: item.modules,
+            assumptions: item.assumptions,
+          }),
+        ]),
+      ),
+    [items],
+  );
 
   const filteredItems = useMemo(() =>
     search.trim()
@@ -292,17 +315,8 @@ export default function HistoryPage() {
                 const isDeleting = deletingId === item.id;
                 const isConfirming = confirmingId === item.id;
                 const totalMandays = item.modules.reduce((s, m) => s + m.manday, 0);
-                const reliability = calculateReliability({
-                  sow: item.sow,
-                  manday_estimate: { min: item.mandayMin, max: item.mandayMax },
-                  modules: item.modules,
-                  assumptions: item.assumptions,
-                });
-                const reliabilityCfg = {
-                  high:   { bg: 'bg-green-100 dark:bg-green-900/30',  text: 'text-green-700 dark:text-green-400',  dot: 'bg-green-500'  },
-                  medium: { bg: 'bg-yellow-100 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
-                  low:    { bg: 'bg-red-100 dark:bg-red-900/20',       text: 'text-red-700 dark:text-red-400',       dot: 'bg-red-500'    },
-                }[reliability.level];
+                const reliability = reliabilityById.get(item.id)!;
+                const reliabilityCfg = RELIABILITY_CFG[reliability.level];
 
                 // Highlight matching search term in filename
                 const highlightName = (name: string) => {

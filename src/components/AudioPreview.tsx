@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface AudioPreviewProps {
   file: File;
@@ -37,10 +37,25 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  // ค่าล่าสุดที่ render ไปแล้ว — ใช้กรอง timeupdate ให้ setState เฉพาะเมื่อวินาที/แท่ง active เปลี่ยน
+  const lastTickRef = useRef({ sec: -1, bar: -1 });
 
-  const waveBars = getWaveBars(file.name);
+  const waveBars = useMemo(() => getWaveBars(file.name), [file.name]);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const activeBar = Math.floor((progress / 100) * waveBars.length);
+
+  const handleTimeUpdate = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const time = audio.currentTime;
+    const sec = Math.floor(time);
+    const dur = audio.duration;
+    const bar = dur > 0 ? Math.floor((time / dur) * waveBars.length) : 0;
+    if (sec !== lastTickRef.current.sec || bar !== lastTickRef.current.bar) {
+      lastTickRef.current = { sec, bar };
+      setCurrentTime(time);
+    }
+  };
 
   useEffect(() => {
     const objectUrl = URL.createObjectURL(file);
@@ -90,7 +105,7 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
       <audio
         ref={audioRef}
         src={url}
-        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime ?? 0)}
+        onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration ?? 0)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}

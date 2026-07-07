@@ -1,16 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { UploadZone } from '@/components/UploadZone';
 import { AudioPreview } from '@/components/AudioPreview';
-import { ResultCard } from '@/components/ResultCard';
 import { useLang } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import type { EstimationResult } from '@/lib/analyzer';
 
+// Lazy-load — ResultCard (รวม ExportMenu/portal) ไม่จำเป็นตอน idle; chunk ถูก warm ล่วงหน้าใน handleAnalyze
+const ResultCard = dynamic(
+  () => import('@/components/ResultCard').then(m => ({ default: m.ResultCard })),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-48 rounded-2xl bg-gray-100 dark:bg-zinc-800 animate-pulse"
+        style={{ transition: 'none' }}
+      />
+    ),
+  }
+);
+
 type Step = 'idle' | 'transcribing' | 'transcribed' | 'analyzing' | 'done';
+
+// ตำแหน่ง step ปัจจุบันบน indicator 3 ขั้น (done = 3 → ครบทุกขั้น)
+const STEP_ORDER: Record<Step, number> = {
+  idle: 0,
+  transcribing: 0,
+  transcribed: 1,
+  analyzing: 1,
+  done: 3,
+};
 
 // Deterministic waveform data — 32 bars with varied heights, speeds and offsets
 const WAVE_HEIGHTS  = [28,45,62,48,80,58,35,72,50,88,42,65,82,47,70,56,32,85,60,76,44,55,90,46,68,78,52,38,60,44,30,50];
@@ -52,6 +75,12 @@ export default function Home() {
   const [step, setStep] = useState<Step>('idle');
   const [error, setError] = useState<string | null>(null);
 
+  const transcriptCardRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<HTMLPreElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
   // Prefill transcript from history re-analyze
   useEffect(() => {
     try {
@@ -71,6 +100,56 @@ export default function Home() {
 
   const isProcessing = step === 'transcribing' || step === 'analyzing';
 
+  // เลื่อนจอไปยังขั้นถัดไปเมื่อ step เปลี่ยน — card ใหม่โผล่นอกจอด้านล่างโดยเฉพาะบน mobile
+  useEffect(() => {
+    if (step !== 'transcribed' && step !== 'done') return;
+    const behavior: ScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
+    if (step === 'transcribed') {
+      transcriptCardRef.current?.scrollIntoView({ behavior, block: 'start' });
+      // focus เฉพาะอุปกรณ์มีเมาส์ — บน touch จะดัน virtual keyboard เด้งกลางทาง
+      if (window.matchMedia('(pointer: fine)').matches) {
+        textareaRef.current?.focus({ preventScroll: true });
+      }
+    } else {
+      resultRef.current?.scrollIntoView({ behavior, block: 'start' });
+    }
+  }, [step]);
+
+  // ให้ terminal เลื่อนตามท้ายข้อความระหว่าง stream
+  useEffect(() => {
+    const el = terminalRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [streamingText]);
+
+  // Step 1: Upload audio → STT (รับไฟล์เป็น parameter — เรียกจาก event handler ทันทีที่เลือกไฟล์
+  // ห้ามย้ายไป useEffect on file: StrictMode จะยิง /api/upload ซ้ำและเปลือง rate limit)
+  const transcribeFile = async (selected: File) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setError(null);
+    try {
+      setStep('transcribing');
+      const formData = new FormData();
+      formData.append('audio', selected);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Transcription failed');
+      const { transcript } = await res.json();
+      setEditedTranscript(transcript);
+      setStep('transcribed');
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      setError(err instanceof Error ? err.message : 'Transcription failed');
+      setStep('idle');
+    }
+  };
+
   const handleFileSelect = (selected: File) => {
     setFile(selected);
     setPrefillAudioName('');
@@ -78,31 +157,14 @@ export default function Home() {
     setStreamingText('');
     setResult(null);
     setError(null);
-    setStep('idle');
-  };
-
-  // Step 1: Upload audio → STT
-  const handleTranscribe = async () => {
-    if (!file) return;
-    setError(null);
-    try {
-      setStep('transcribing');
-      const formData = new FormData();
-      formData.append('audio', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Transcription failed');
-      const { transcript } = await res.json();
-      setEditedTranscript(transcript);
-      setStep('transcribed');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Transcription failed');
-      setStep('idle');
-    }
+    void transcribeFile(selected);
   };
 
   // Step 2: Stream transcript → LLM
   const handleAnalyze = async () => {
     if (!editedTranscript.trim()) return;
+    // warm chunk ของ ResultCard ระหว่างรอ LLM stream — ตอน done จะไม่มี loading flash
+    void import('@/components/ResultCard');
     setError(null);
     setResult(null);
     setStreamingText('');
@@ -122,14 +184,20 @@ export default function Home() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulated = '';
+      // flush ลง state ~10fps พอ — setState ทุก chunk ทำให้ทั้งหน้า re-render ต่อ token
+      let lastFlush = 0;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        accumulated += chunk;
-        setStreamingText(accumulated);
+        accumulated += decoder.decode(value, { stream: true });
+        const now = Date.now();
+        if (now - lastFlush >= 100) {
+          lastFlush = now;
+          setStreamingText(accumulated);
+        }
       }
+      setStreamingText(accumulated);
 
       if (accumulated.includes('__STREAM_ERROR__')) {
         throw new Error('AI generation failed. Please try again.');
@@ -154,10 +222,16 @@ export default function Home() {
     setStreamingText('');
     setResult(null);
     setError(null);
-    setStep('idle');
+    if (file) {
+      // มีไฟล์อยู่แล้ว → ถอดใหม่ทันที ไม่ต้องวนกลับไปหน้าอัปโหลด
+      void transcribeFile(file);
+    } else {
+      setStep('idle');
+    }
   };
 
   const handleReset = () => {
+    abortRef.current?.abort();
     setFile(null);
     setPrefillAudioName('');
     setEditedTranscript('');
@@ -182,55 +256,62 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Step indicator */}
-        {step !== 'idle' && step !== 'done' && (
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                  step === 'transcribing'
-                    ? 'bg-blue-600 text-white animate-pulse'
-                    : 'bg-green-500 text-white'
-                }`}
-                style={{ transition: 'none' }}
-              >
-                {step === 'transcribing' ? '1' : (
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </span>
-              <span className={`text-xs font-medium ${
-                step === 'transcribing' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'
-              }`}>
-                {t.sttStep}
-              </span>
-            </div>
-            <div className="w-8 h-px bg-gray-300 dark:bg-zinc-600" />
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                  step === 'analyzing'
-                    ? 'bg-blue-600 text-white animate-pulse'
-                    : 'bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-slate-400'
-                }`}
-                style={{ transition: 'none' }}
-              >
-                2
-              </span>
-              <span className={`text-xs font-medium ${
-                step === 'analyzing' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500'
-              }`}>
-                {t.aiStep}
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Step indicator — แสดงตลอดให้รู้ว่าอยู่ขั้นไหน (เดิมโผล่เฉพาะตอนรอ) */}
+        <div className="flex items-center justify-center gap-3 mb-6 print:hidden">
+          {[t.stepUpload, t.stepReview, t.stepResult].map((label, i) => {
+            const current = STEP_ORDER[step];
+            const isDone = i < current;
+            const isActive = i === current;
+            const isPulsing = isActive && isProcessing;
+            return (
+              <div key={label} className="flex items-center gap-3">
+                {i > 0 && <div className="w-8 h-px bg-gray-300 dark:bg-zinc-600" />}
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                      isDone
+                        ? 'bg-green-500 text-white'
+                        : isActive
+                          ? `bg-blue-600 text-white${isPulsing ? ' animate-pulse' : ''}`
+                          : 'bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-slate-400'
+                    }`}
+                    style={{ transition: 'none' }}
+                  >
+                    {isDone ? (
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      i + 1
+                    )}
+                  </span>
+                  <span
+                    className={`text-xs font-medium ${
+                      isDone
+                        ? 'text-green-600 dark:text-green-400'
+                        : isActive
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-gray-400 dark:text-slate-500'
+                    }`}
+                  >
+                    {label}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         {/* Upload card */}
         {(step === 'idle' || step === 'transcribing') && (
           <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-8 mb-5">
             <UploadZone onFileSelect={handleFileSelect} onRemove={handleReset} disabled={isProcessing} selectedFile={file} />
+
+            {step === 'idle' && !file && (
+              <p className="mt-3 text-center text-xs text-gray-400 dark:text-slate-500">
+                {t.autoTranscribeNote}
+              </p>
+            )}
 
             {/* Audio preview player */}
             {file && (
@@ -247,31 +328,29 @@ export default function Home() {
                 <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
               </div>
             )}
-            <div className="mt-5">
-              <button
-                onClick={handleTranscribe}
-                disabled={!file || isProcessing}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white disabled:text-gray-400 dark:disabled:text-slate-500 font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 text-sm"
-              >
-                {step === 'transcribing' ? (
-                  <>
-                    <svg className="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" style={{ transition: 'none' }}>
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    {t.transcribing}
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-                    </svg>
-                    {t.transcribeBtn}
-                  </>
-                )}
-              </button>
-            </div>
+            {/* ถอดเสียงเริ่มอัตโนมัติเมื่อเลือกไฟล์ — เหลือแค่ status ระหว่างรอ + retry ตอน error */}
+            {step === 'transcribing' && (
+              <div className="mt-5 flex items-center justify-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+                <svg className="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" style={{ transition: 'none' }}>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                {t.transcribing}
+              </div>
+            )}
+            {step === 'idle' && file && error && (
+              <div className="mt-4">
+                <button
+                  onClick={() => void transcribeFile(file)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 text-sm"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {t.retryTranscribe}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -299,7 +378,10 @@ export default function Home() {
 
         {/* Editable transcript card */}
         {(step === 'transcribed' || step === 'analyzing') && (
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-8 mb-5">
+          <div
+            ref={transcriptCardRef}
+            className="scroll-mt-20 bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-8 mb-5"
+          >
             {/* Re-analyze source banner */}
             {prefillAudioName && (
               <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
@@ -334,6 +416,7 @@ export default function Home() {
               </div>
             )}
             <textarea
+              ref={textareaRef}
               value={editedTranscript}
               onChange={e => setEditedTranscript(e.target.value)}
               disabled={step === 'analyzing'}
@@ -348,7 +431,10 @@ export default function Home() {
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" style={{ transition: 'none' }} />
                   <span className="text-xs font-mono text-slate-400">{t.generating}</span>
                 </div>
-                <pre className="font-mono text-xs text-green-400 whitespace-pre-wrap break-all max-h-40 overflow-y-auto leading-relaxed">
+                <pre
+                  ref={terminalRef}
+                  className="font-mono text-xs text-green-400 whitespace-pre-wrap break-all max-h-40 overflow-y-auto leading-relaxed"
+                >
                   {streamingText || ' '}
                   <span className="animate-pulse" style={{ transition: 'none' }}>▌</span>
                 </pre>
@@ -404,7 +490,7 @@ export default function Home() {
 
         {/* Results */}
         {result && (
-          <>
+          <div ref={resultRef} className="scroll-mt-20">
             <div className="flex items-center justify-between mb-4 print:hidden">
               <div className="h-px flex-1 bg-gray-200 dark:bg-zinc-700" />
               <span className="px-3 text-xs text-gray-400 dark:text-slate-500 font-medium">{t.resultLabel}</span>
@@ -419,7 +505,7 @@ export default function Home() {
                 {t.reset}
               </button>
             </div>
-          </>
+          </div>
         )}
       </main>
 

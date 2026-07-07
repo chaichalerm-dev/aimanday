@@ -97,12 +97,26 @@ prisma/schema.prisma               # model Estimation
 2. ผู้ใช้แก้ transcript ได้ (Editable Transcript)
 3. `/api/analyze` — รับ transcript → **stream** LLM response → parse JSON → บันทึก DB
 
+### Auto-transcribe (UX flow ฝั่ง client)
+- เลือก/วางไฟล์ปุ๊บ `transcribeFile(file)` ยิงทันที — **เรียกจาก event handler เท่านั้น ห้ามย้ายไป `useEffect` on file** (StrictMode จะ double-POST `/api/upload` เปลือง rate limit)
+- `transcribeFile` รับไฟล์เป็น parameter (กัน stale closure) + มี `AbortController` ใน ref (abort ตอน reset/เปลี่ยนไฟล์)
+- ปุ่มถอดเสียงไม่มีแล้ว — เหลือ status ระหว่างรอ + ปุ่ม Retry (`t.retryTranscribe`) ตอน error
+- "ถอดเสียงใหม่": ถ้ามี `file` → ถอดทันที; ไม่มี (มาจาก reanalyze prefill) → กลับ idle
+- path `reanalyze_prefill` ไม่ auto-transcribe (ไม่มี file)
+- step indicator 3 ขั้น (อัปโหลด → ตรวจข้อความ → ผลลัพธ์) แสดงตลอด, mapping ผ่าน `STEP_ORDER`
+
+### Scroll/focus management (page.tsx)
+- `useEffect` on `[step]`: transcribed → scroll ไป transcript card + focus textarea (เฉพาะ `pointer: fine` กัน keyboard เด้งบน mobile); done → scroll ไป result
+- target มี `scroll-mt-20` (header fixed h-14 จะบังหัว card) + เช็ค `prefers-reduced-motion` ก่อนเลือก smooth/auto
+
 ### Streaming
 - `/api/analyze` คืนค่าเป็น `ReadableStream` (text/plain) ไม่ใช่ JSON
 - frontend อ่านด้วย `response.body.getReader()` แสดง terminal live
 - ถ้า error กลางทาง stream ส่ง `__STREAM_ERROR__` sentinel
 - บันทึก DB เกิด server-side หลัง stream จบ
 - `parseEstimation()` ใน `page.tsx` เป็น client-side duplicate ของ `tryParseJSON` — แยกไว้เพื่อให้ client component ไม่ต้อง import จาก module ฝั่ง server
+- **throttle การ flush ลง state ~10fps** (`lastFlush` timestamp) + final flush หลังจบ loop — setState ทุก chunk ทำให้ทั้งหน้า re-render ต่อ token
+- `ResultCard` โหลดผ่าน `next/dynamic` (named export ต้อง `.then(m => ({ default: m.ResultCard }))`) + warm chunk ด้วย `void import(...)` ตอนเริ่ม analyze
 
 ### Bilingual (เนื้อหาจากเสียง 2 ภาษา)
 - LLM ถูกสั่งให้ส่งทุก text field เป็น `{ th, en }` (มีตัวอย่างใน prompt ให้ชัด)

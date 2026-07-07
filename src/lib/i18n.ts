@@ -10,11 +10,12 @@ export interface Translations {
   dropHere: string;
   clickToBrowse: string;
   supports: string;
-  fileReady: string;
+  autoTranscribeNote: string;
+  changeFile: string;
   // Buttons
-  transcribeBtn: string;
   analyzeAiBtn: string;
   retranscribe: string;
+  retryTranscribe: string;
   reset: string;
   // Editable transcript
   editTranscriptLabel: string;
@@ -23,8 +24,9 @@ export interface Translations {
   transcribing: string;
   analyzing: string;
   // Pipeline steps
-  sttStep: string;
-  aiStep: string;
+  stepUpload: string;
+  stepReview: string;
+  stepResult: string;
   // Result card
   totalManday: string;
   mandays: string;
@@ -124,17 +126,19 @@ export const th: Translations = {
   dropHere: 'วางไฟล์เสียงที่นี่ หรือ',
   clickToBrowse: 'คลิกเพื่อเลือกไฟล์',
   supports: 'รองรับ .mp3, .wav, .m4a — ไม่เกิน ~25 MB',
-  fileReady: 'พร้อมแล้ว',
-  transcribeBtn: 'ถอดเสียง',
+  autoTranscribeNote: 'ระบบจะถอดเสียงให้อัตโนมัติทันทีที่เลือกไฟล์',
+  changeFile: 'คลิกหรือวางไฟล์ใหม่เพื่อเปลี่ยนไฟล์',
   analyzeAiBtn: 'วิเคราะห์ด้วย AI',
   retranscribe: 'ถอดเสียงใหม่',
+  retryTranscribe: 'ลองถอดเสียงอีกครั้ง',
   reset: 'เริ่มใหม่',
   editTranscriptLabel: 'ตรวจสอบและแก้ไขข้อความก่อนวิเคราะห์',
   editTranscriptHint: 'AI ถอดเสียงอาจมีข้อผิดพลาด สามารถแก้ไขข้อความก่อนส่งให้ AI วิเคราะห์ได้',
   transcribing: 'กำลังถอดเสียง…',
   analyzing: 'กำลังวิเคราะห์…',
-  sttStep: 'ถอดเสียง',
-  aiStep: 'AI วิเคราะห์',
+  stepUpload: 'อัปโหลด',
+  stepReview: 'ตรวจข้อความ',
+  stepResult: 'ผลลัพธ์',
   totalManday: 'ประมาณการ Manday รวม',
   mandays: 'วันทำงาน',
   basedOn: 'จาก',
@@ -221,17 +225,19 @@ export const en: Translations = {
   dropHere: 'Drop audio file here, or',
   clickToBrowse: 'click to browse',
   supports: 'Supports .mp3, .wav, .m4a — max ~25 MB',
-  fileReady: 'Ready',
-  transcribeBtn: 'Transcribe Audio',
+  autoTranscribeNote: 'Transcription starts automatically when you select a file',
+  changeFile: 'Click or drop a new file to replace',
   analyzeAiBtn: 'Analyze with AI',
   retranscribe: 'Re-transcribe',
+  retryTranscribe: 'Retry transcription',
   reset: 'Reset',
   editTranscriptLabel: 'Review & edit transcript before analysis',
   editTranscriptHint: 'STT may not be 100% accurate. Edit the text below before sending to AI.',
   transcribing: 'Transcribing audio…',
   analyzing: 'Analyzing requirements…',
-  sttStep: 'Speech-to-Text',
-  aiStep: 'AI Analysis',
+  stepUpload: 'Upload',
+  stepReview: 'Review',
+  stepResult: 'Result',
   totalManday: 'Total Manday Estimate',
   mandays: 'mandays',
   basedOn: 'Based on',
