@@ -9,6 +9,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+
+  estimations Estimation[]
+}
+
 model Estimation {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   audioName   String
@@ -19,7 +29,11 @@ model Estimation {
   modules     Json
   assumptions Json
   createdAt   DateTime @default(now())
+  // Optional — pre-auth records have no owner; new records always set this
+  userId      String?  @db.ObjectId
+  user        User?    @relation(fields: [userId], references: [id])
 
   // Index the sort field so the history list query stays fast as data grows
   @@index([createdAt])
+  @@index([userId])
 }

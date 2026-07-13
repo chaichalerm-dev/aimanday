@@ -1,6 +1,6 @@
 # AI Manday Estimator
 
-ระบบ AI ที่แปลงไฟล์เสียง Requirement ให้กลายเป็น Scope of Work + ประมาณการ Manday แบบอัตโนมัติ
+ระบบ AI ที่แปลงไฟล์เสียง (หรือข้อความ) Requirement ให้กลายเป็น Scope of Work + ประมาณการ Manday แบบอัตโนมัติ
 
 ---
 
@@ -14,7 +14,7 @@
 
 ## โปรเจกต์ทำอะไร
 
-อัปโหลดไฟล์เสียงการประชุมหรือบันทึก Requirement → ระบบถอดเสียงเป็นข้อความ → แก้ไขข้อความได้ → AI วิเคราะห์และสรุปออกมาเป็น:
+อัปโหลดไฟล์เสียงการประชุม (หรือพิมพ์ requirement เองก็ได้) → ระบบถอดเสียงเป็นข้อความ → แก้ไขข้อความได้ → AI วิเคราะห์และสรุปออกมาเป็น:
 
 - **Scope of Work (SOW)** — รายการสิ่งที่ต้องทำ
 - **Manday Range** — ช่วงประมาณการวันทำงาน (min–max)
@@ -24,20 +24,24 @@
 
 ผลลัพธ์ทั้งหมดแสดงเป็น **2 ภาษา (ไทย + อังกฤษ)** พร้อม export เป็น JSON / Markdown / CSV / PDF
 
+ใช้งานได้ทั้งแบบ **ไม่ login** (ลองระบบได้ทันที ไม่บันทึกประวัติ) และแบบ **login** (ประวัติทุกรายการถูกเก็บแยกเป็นของตัวเอง ค้นหา/ย้อนดู/วิเคราะห์ซ้ำได้)
+
 ---
 
 ## วิธีการทำงาน
 
 ```
-[อัปโหลดไฟล์เสียง]
-        ↓
+[หน้า Landing (/)] → กด "เริ่มประเมินฟรี" → [เครื่องมือ (/app)] — ไม่ login ก็เข้าได้
+
+เลือกโหมด: [อัปโหลดไฟล์เสียง]  หรือ  [พิมพ์ข้อความเอง]
+        ↓ (เฉพาะโหมดไฟล์เสียง)
 POST /api/upload  →  Groq Whisper (STT)  →  transcript text
         ↓
 [ผู้ใช้ตรวจสอบ / แก้ไข transcript]
         ↓
 POST /api/analyze  →  Groq GPT OSS 120B (LLM Streaming)
         ↓
-parse JSON  →  บันทึก MongoDB  →  แสดงผล real-time
+parse JSON  →  แสดงผล real-time  →  บันทึก MongoDB (เฉพาะถ้า login อยู่)
 ```
 
 **2 ขั้นตอนแยกกัน เพื่อให้ผู้ใช้แก้ไข transcript ก่อนส่ง AI ได้**
@@ -51,7 +55,8 @@ parse JSON  →  บันทึก MongoDB  →  แสดงผล real-time
 | ส่วน | เทคโนโลยี | เหตุผลที่เลือก |
 |---|---|---|
 | Frontend | Next.js 14 App Router + TypeScript | Server/Client components, type-safe ตั้งแต่ต้น |
-| Styling | Tailwind CSS + Sarabun Font | จัดการ responsive ได้เร็ว, รองรับ Thai + Latin |
+| Styling | Tailwind CSS + Prompt Font | จัดการ responsive ได้เร็ว, รองรับ Thai + Latin, หน้าตาทันสมัยแบบ SaaS |
+| Auth | NextAuth.js v4 (Credentials + JWT) | login ด้วย email/password ล้วน ไม่ต้องพึ่ง OAuth provider ภายนอก, session ไม่ผูก DB |
 | Database | MongoDB Atlas | เหมาะกับ JSON output ที่โครงสร้างยืดหยุ่น |
 | ORM | Prisma 5 | type-safe queries, migrate schema ได้ง่าย |
 | STT | Groq Whisper `whisper-large-v3` | เร็ว, แม่นยำ, รองรับภาษาไทย |
@@ -62,10 +67,18 @@ parse JSON  →  บันทึก MongoDB  →  แสดงผล real-time
 ## ฟีเจอร์
 
 **หลัก**
-- อัปโหลดไฟล์เสียง `.mp3` / `.wav` / `.m4a`
-- ถอดเสียงด้วย Groq Whisper
+- Landing page แนะนำระบบ แยกจากหน้าเครื่องมือจริง
+- อัปโหลดไฟล์เสียง `.mp3` / `.wav` / `.m4a` **หรือพิมพ์ Requirement เองโดยตรง** (ไม่มีไฟล์เสียงก็ใช้ได้)
+- ถอดเสียงด้วย Groq Whisper (อัตโนมัติทันทีที่เลือกไฟล์)
 - วิเคราะห์ด้วย AI → SOW + Manday + Modules + Assumptions
-- บันทึก + ดูประวัติทั้งหมดผ่าน MongoDB
+- บันทึก + ดูประวัติ — **แยกเป็นส่วนตัวต่อผู้ใช้แต่ละคน**
+
+**บัญชีผู้ใช้**
+- สมัครสมาชิก / เข้าสู่ระบบด้วย email + password (bcrypt hash)
+- **ใช้เครื่องมือได้โดยไม่ต้อง login** — แค่ผลลัพธ์จะไม่ถูกบันทึกลงประวัติ (มี banner แจ้งเตือนให้ทราบ)
+- หน้า "บัญชีของฉัน" แก้ไขชื่อ/อีเมล และเปลี่ยนรหัสผ่านได้เอง
+- ช่องรหัสผ่านมีปุ่มแสดง/ซ่อน + มาตรวัดความปลอดภัยของรหัสผ่าน (อ่อน/ปานกลาง/แข็งแรง)
+- มีบัญชีทดสอบพร้อมใช้ในหน้า login (autofill ได้ในคลิกเดียว)
 
 **เพิ่มเติม**
 - **Editable Transcript** — แก้ไขข้อความจาก STT ก่อนส่ง AI (เพราะ STT ไม่แม่น 100%)
@@ -73,7 +86,7 @@ parse JSON  →  บันทึก MongoDB  →  แสดงผล real-time
 - **Bilingual Output** — SOW / Modules / Assumptions แสดงทั้งไทยและอังกฤษพร้อมกัน
 - **Reliability Score** — คะแนน 0–100 พร้อม breakdown ว่าหักจากอะไร
 - **Audio Preview Player** — เล่นเสียงย้อนกลับได้ทุกขั้นตอน รวมถึงในหน้าประวัติ
-- **History Page** — ค้นหา + แบ่งหน้า, เปิดรายละเอียดต่อ item, ลบได้
+- **History Page** — ค้นหา + แบ่งหน้า, เปิดรายละเอียดต่อ item, ลบได้ (ของตัวเองเท่านั้น)
 - **Re-analyze** — โหลด transcript เก่ากลับมาวิเคราะห์ใหม่ได้
 - **Export Menu** — Copy JSON/Markdown, Download CSV, Print/PDF
 - **Dark / Light Mode** — โทน Zinc อบอุ่น, sync system preference, persist localStorage
@@ -87,26 +100,40 @@ parse JSON  →  บันทึก MongoDB  →  แสดงผล real-time
 
 ```
 src/
+├── middleware.ts                  # next-auth middleware — บังคับ login เฉพาะ /history และ /account
 ├── app/
-│   ├── page.tsx                   # หน้าหลัก: upload → transcript → analyze → result
-│   ├── layout.tsx                 # Root layout + providers + BottomNav
+│   ├── page.tsx                   # Landing page (public) — hero/features/how-it-works
+│   ├── app/page.tsx               # เครื่องมือจริง (public): เลือกไฟล์เสียง/พิมพ์ข้อความ → transcribe/edit → analyze (stream) → result
+│   ├── login/page.tsx             # หน้า login + บัญชีทดสอบ autofill
+│   ├── register/page.tsx          # หน้าสมัครสมาชิก
+│   ├── account/page.tsx           # จัดการบัญชี: แก้โปรไฟล์ + เปลี่ยนรหัสผ่าน
+│   ├── layout.tsx                 # Root layout + providers (Auth/Theme/Lang/Toast) + BottomNav
 │   ├── guide/page.tsx             # หน้าวิธีใช้งาน
 │   ├── history/
-│   │   ├── page.tsx               # รายการประวัติ + search + pagination
+│   │   ├── page.tsx               # รายการประวัติของตัวเอง + search + pagination
 │   │   └── [id]/page.tsx          # หน้ารายละเอียดต่อ item
 │   └── api/
-│       ├── upload/route.ts        # STT + rate limit + file validation
-│       ├── analyze/route.ts       # LLM streaming + DB save + rate limit
-│       └── history/[id]/route.ts  # GET single + DELETE
+│       ├── auth/
+│       │   ├── [...nextauth]/route.ts   # NextAuth handler
+│       │   └── register/route.ts        # สมัครสมาชิก
+│       ├── account/
+│       │   ├── route.ts                 # GET/PATCH โปรไฟล์
+│       │   └── password/route.ts        # PATCH เปลี่ยนรหัสผ่าน
+│       ├── upload/route.ts        # STT + rate limit + file validation (public)
+│       ├── analyze/route.ts       # LLM streaming + rate limit (public, บันทึก DB เฉพาะถ้า login)
+│       └── history/[id]/route.ts  # GET single + DELETE (scope ด้วย userId)
 ├── components/
 │   ├── Header.tsx / BottomNav.tsx / Footer.tsx
 │   ├── UploadZone.tsx             # Drag & drop
 │   ├── AudioPreview.tsx           # Custom audio player
+│   ├── PasswordInput.tsx          # ช่องรหัสผ่าน + ปุ่มลูกตา + strength meter
 │   ├── ResultCard.tsx             # แสดงผล SOW/Manday/Modules + export
 │   ├── ExportMenu.tsx             # Dropdown ด้วย React Portal
 │   └── Bilingual.tsx              # Render ข้อความ 2 ภาษา
-├── contexts/                      # Theme / Language / Toast
+├── contexts/                      # Auth / Theme / Language / Toast
 ├── lib/
+│   ├── auth.ts                    # NextAuth authOptions (Credentials provider)
+│   ├── passwordStrength.ts        # คำนวณคะแนนความปลอดภัยรหัสผ่าน
 │   ├── analyzer.ts                # System prompt + JSON parser
 │   ├── whisper.ts                 # Groq Whisper helper
 │   ├── reliability.ts             # คำนวณ confidence score
@@ -114,7 +141,7 @@ src/
 │   ├── bilingual.ts               # pickText / plainText
 │   ├── download.ts                # JSON/MD/CSV export
 │   └── i18n.ts                    # คำแปล TH/EN ทุก label
-└── types/history.ts               # Shared HistoryItem interface
+└── types/                         # Shared types (HistoryItem, next-auth augmentation)
 ```
 
 ---
@@ -170,6 +197,27 @@ React hydration ช้ากว่า browser render ทำให้ผู้ใ
 
 ---
 
+### 7. NextAuth client fetch พังตอน dev server สลับ port
+`next-auth/react` อ่าน `NEXTAUTH_URL` ผ่าน `process.env` ตอน build bundle ฝั่ง client — แต่ Next.js ไม่ inline env var ที่ไม่ขึ้นต้นด้วย `NEXT_PUBLIC_` ให้ฝั่ง browser ทำให้ fallback เป็น `http://localhost:3000` เสมอ ถ้า dev server ดันไปรันที่ port อื่น (เช่น 3000 ถูกใช้อยู่ Next เลยสลับไป 3001) ปุ่ม logout จะยิง fetch ไปคนละ origin แล้ว throw `TypeError: Failed to fetch` กลายเป็น unhandled error เต็มจอ
+
+**แก้:** ห่อ `signOut()` ด้วย `try/catch` เสมอ ไม่ปล่อยให้ promise reject หลุดออกมาเป็น unhandled rejection — ถ้า fetch ล้มเหลวให้ fallback เป็น hard redirect แทน
+
+---
+
+### 8. ประวัติเก่าก่อนมี Auth "หายไป" หลังเพิ่มระบบ login
+พอเพิ่ม `Estimation.userId` แล้วเปลี่ยนทุก query ให้ filter ด้วย `userId` ของผู้ใช้ที่ login อยู่ ข้อมูลเก่าที่สร้างไว้ก่อนมี field นี้เลย (ไม่ใช่ `null` แต่ "ไม่มี field" อยู่จริงๆ) จะกลายเป็นข้อมูลกำพร้า มองไม่เห็นจากบัญชีไหนเลย — แต่ยังอยู่ใน MongoDB ครบ ไม่ได้ถูกลบ
+
+**แก้:** เขียนสคริปต์ตรวจ `Estimation` ที่ `userId` เป็น `null`/ไม่มี field แล้ว `updateMany` ผูกกลับเข้ากับบัญชีที่ต้องการได้ทุกเมื่อ — เป็นเหตุผลว่าทำไม schema ถึงออกแบบให้ `userId` เป็น **optional relation** ไม่ใช่ required (กัน migration พังตอนมีข้อมูลเก่าอยู่แล้ว)
+
+---
+
+### 9. แก้โปรไฟล์แล้ว Header ไม่อัปเดตจนกว่าจะ login ใหม่
+NextAuth เก็บ session เป็น JWT ฝั่ง client — พอแก้ชื่อ/อีเมลผ่าน `PATCH /api/account` สำเร็จ DB อัปเดตแล้วก็จริง แต่ JWT ที่ browser ถืออยู่ยังเป็นค่าเก่า ทำให้ Header (avatar/อีเมล) ไม่เปลี่ยนจนกว่า token จะหมดอายุหรือ login ใหม่
+
+**แก้:** เพิ่ม `trigger === 'update'` ใน `jwt` callback ของ `authOptions` แล้วเรียก `useSession().update({ name, email })` ฝั่ง client ทันทีหลัง PATCH สำเร็จ — sync session ได้โดยไม่ต้อง re-login
+
+---
+
 ## การติดตั้ง
 
 **1. Clone และติดตั้ง**
@@ -183,10 +231,13 @@ npm install
 ```env
 GROQ_API_KEY="gsk_xxxxxxxxxxxxxxxxxxxx"
 DATABASE_URL="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/aimanday?appName=Cluster0"
+NEXTAUTH_SECRET="random-string-here"
+NEXTAUTH_URL="http://localhost:3000"
 ```
 
 > รับ `GROQ_API_KEY` ได้ฟรีที่ [console.groq.com](https://console.groq.com)
 > รับ `DATABASE_URL` จาก MongoDB Atlas → Cluster → Connect
+> สร้าง `NEXTAUTH_SECRET` ด้วย `openssl rand -base64 32`
 
 **3. Push schema ไป MongoDB**
 ```bash
@@ -198,7 +249,7 @@ npm run prisma:push
 npm run dev
 ```
 
-เปิด `http://localhost:3000`
+เปิด `http://localhost:3000` — ทดลองใช้เครื่องมือได้ทันทีโดยไม่ต้อง login หรือกด "สมัครสมาชิก" เพื่อเริ่มเก็บประวัติของตัวเอง (หน้า login มีบัญชีทดสอบให้ autofill ได้เลย)
 
 ---
 
@@ -208,7 +259,7 @@ npm run dev
 git push origin main
 ```
 
-จากนั้น: [vercel.com](https://vercel.com) → New Project → Import repo → เพิ่ม env vars (`GROQ_API_KEY`, `DATABASE_URL`) → Deploy
+จากนั้น: [vercel.com](https://vercel.com) → New Project → Import repo → เพิ่ม env vars (`GROQ_API_KEY`, `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` เป็น production URL) → Deploy
 
 ระบบ auto-deploy ทุกครั้งที่ push ไป `main`
 
@@ -216,12 +267,17 @@ git push origin main
 
 ## API
 
-| Method | Endpoint | คำอธิบาย |
-|---|---|---|
-| `POST` | `/api/upload` | รับไฟล์เสียง → คืน transcript text |
-| `POST` | `/api/analyze` | รับ transcript → stream JSON analysis |
-| `GET` | `/api/history` | ดึงประวัติ 200 รายการล่าสุด |
-| `GET` | `/api/history/:id` | ดึง 1 รายการ |
-| `DELETE` | `/api/history/:id` | ลบรายการ |
+| Method | Endpoint | Auth | คำอธิบาย |
+|---|---|---|---|
+| `POST` | `/api/upload` | ไม่บังคับ | รับไฟล์เสียง → คืน transcript text |
+| `POST` | `/api/analyze` | ไม่บังคับ | รับ transcript → stream JSON analysis (บันทึก DB เฉพาะถ้า login) |
+| `POST` | `/api/auth/register` | — | สมัครสมาชิก |
+| `*` | `/api/auth/[...nextauth]` | — | login / logout / session (NextAuth) |
+| `GET` | `/api/account` | ต้อง login | ดูข้อมูลโปรไฟล์ตัวเอง |
+| `PATCH` | `/api/account` | ต้อง login | แก้ไขชื่อ/อีเมล |
+| `PATCH` | `/api/account/password` | ต้อง login | เปลี่ยนรหัสผ่าน |
+| `GET` | `/api/history` | ต้อง login | ดึงประวัติของตัวเอง 200 รายการล่าสุด |
+| `GET` | `/api/history/:id` | ต้อง login | ดึง 1 รายการ (เฉพาะของตัวเอง) |
+| `DELETE` | `/api/history/:id` | ต้อง login | ลบรายการ (เฉพาะของตัวเอง) |
 
 Rate limit: 10 req/min ต่อ IP ต่อ endpoint (returns `429` + `Retry-After` header)

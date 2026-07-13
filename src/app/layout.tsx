@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
-import { Sarabun } from 'next/font/google';
+import { Prompt } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { AuthProvider } from '@/contexts/AuthProvider';
 import { BottomNav } from '@/components/BottomNav';
 
-// Sarabun: รองรับ Thai + Latin ในไฟล์เดียว, อ่านง่าย, ดูทันสมัย
-const sarabun = Sarabun({
+// Prompt: รองรับ Thai + Latin ในไฟล์เดียว, ทรงเรขาคณิตโค้งมน หน้าตาทันสมัยแบบ SaaS
+const prompt = Prompt({
   subsets: ['thai', 'latin'],
   weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
-  variable: '--font-sarabun',
+  variable: '--font-prompt',
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -76,17 +77,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${sarabun.variable} font-sans min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100`}
+        className={`${prompt.variable} font-sans min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100`}
       >
-        <ThemeProvider>
-          <LanguageProvider>
-            <ToastProvider>
-              {/* Bottom padding on mobile so content isn't hidden behind BottomNav */}
-              <div className="pb-16 md:pb-0">{children}</div>
-              <BottomNav />
-            </ToastProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <ToastProvider>
+                {/* Bottom padding on mobile so content isn't hidden behind BottomNav */}
+                <div className="pb-16 md:pb-0">{children}</div>
+                <BottomNav />
+              </ToastProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { SYSTEM_PROMPT, buildUserPrompt, tryParseJSON } from '@/lib/analyzer';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit, rateLimitHeaders, getClientIp } from '@/lib/rateLimit';
@@ -19,7 +21,11 @@ function getGroq(): Groq {
   return groqClient;
 }
 
+// Public — guests can analyze too, but the result is only saved to history when logged in.
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+
   // Rate limit: 10 LLM analysis requests per minute per IP
   const ip = getClientIp(request);
   const rateLimitResult = checkRateLimit(`analyze:${ip}`, 10, 60_000);
@@ -68,13 +74,14 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Save to DB after full stream
+          // Save to DB after full stream — guests get a result but nothing is persisted
           const parsed = tryParseJSON(accumulated);
-          if (parsed) {
+          if (parsed && userId) {
             await prisma.estimation.create({
               data: {
                 audioName,
                 transcript,
+                userId,
                 /* eslint-disable @typescript-eslint/no-explicit-any */
                 sow: parsed.sow as any,
                 mandayMin: parsed.manday_estimate.min,

@@ -11,8 +11,9 @@
 ## Tech Stack
 
 - **Next.js 14** (App Router) + **TypeScript** (strict mode)
-- **Tailwind CSS** + **Sarabun font** (รองรับ Thai + Latin)
+- **Tailwind CSS** + **Prompt font** (รองรับ Thai + Latin, ทรงเรขาคณิตโค้งมน หน้าตาทันสมัยแบบ SaaS)
 - **Prisma 5** + **MongoDB Atlas**
+- **NextAuth.js v4** (Credentials provider, JWT session) — login/register ด้วย email+password, แยกประวัติต่อผู้ใช้
 - **Groq SDK** — ใช้ทั้ง Whisper STT (`whisper-large-v3`) และ LLM (`openai/gpt-oss-120b`)
 - ใช้ **Groq API อย่างเดียว** — `openai/gpt-oss-120b` เป็น OSS model ที่ Groq ให้บริการ (ไม่ได้ใช้ OpenAI API โดยตรง)
 
@@ -33,6 +34,8 @@ npx tsc --noEmit         # ตรวจ TypeScript (เช็คทุกคร�
 ```env
 GROQ_API_KEY="gsk_..."        # ใช้ทั้ง STT และ LLM
 DATABASE_URL="mongodb+srv://...mongodb.net/aimanday?appName=Cluster0"
+NEXTAUTH_SECRET="..."          # random string เซ็น JWT/cookie ของ session (สร้างด้วย openssl rand -base64 32)
+NEXTAUTH_URL="http://localhost:3000"   # base URL ของแอป — บน Vercel ตั้งเป็น production URL
 ```
 
 **หมายเหตุ:** DATABASE_URL ต้องมี `/aimanday` (ชื่อ database) ก่อน `?` ไม่งั้น Prisma error P1013
@@ -47,23 +50,34 @@ DATABASE_URL="mongodb+srv://...mongodb.net/aimanday?appName=Cluster0"
 
 ```
 src/
+├── middleware.ts                  # next-auth middleware — ป้องกันเฉพาะ /history/:path* (/app เป็น public)
 ├── app/
-│   ├── page.tsx                   # หน้าหลัก: upload → transcribe → edit → analyze (stream) → result
-│   ├── layout.tsx                 # providers (Theme/Lang/Toast) + BottomNav + spacer + inline theme script
+│   ├── page.tsx                   # Landing page (public) — hero/features/how-it-works, CTA → /app
+│   ├── app/page.tsx               # เครื่องมือจริง (public — ไม่ login ก็ใช้ได้): input mode (ไฟล์เสียง/พิมพ์ข้อความ) → transcribe/edit → analyze (stream) → result — โชว์ guest banner ถ้าไม่ login
+│   ├── login/page.tsx             # ฟอร์ม login (signIn credentials) — รองรับ ?callbackUrl
+│   ├── register/page.tsx          # ฟอร์ม สมัครสมาชิก → POST /api/auth/register → auto sign-in
+│   ├── account/page.tsx           # จัดการบัญชี: แก้ชื่อ/อีเมล + เปลี่ยนรหัสผ่าน — ต้อง login
+│   ├── layout.tsx                 # providers (Auth/Theme/Lang/Toast) + BottomNav + spacer + inline theme script
 │   ├── globals.css                # Tailwind + print CSS + dark transitions
-│   ├── guide/page.tsx             # หน้าวิธีใช้งาน + ติดต่อผ่าน LINE OA
+│   ├── guide/page.tsx             # หน้าวิธีใช้งาน (public) + ติดต่อผ่าน LINE OA
 │   ├── history/
-│   │   ├── page.tsx               # ประวัติ: search + pagination (5/หน้า) + expand inline + export ต่อ item
-│   │   └── [id]/page.tsx          # หน้า detail เต็มต่อ item (reuse ResultCard)
+│   │   ├── page.tsx               # ประวัติของ user ที่ login: search + pagination (5/หน้า) + expand inline + export ต่อ item — ต้อง login
+│   │   └── [id]/page.tsx          # หน้า detail เต็มต่อ item (reuse ResultCard) — ต้อง login
 │   └── api/
-│       ├── upload/route.ts        # STT + rate limit + file size validate
-│       ├── analyze/route.ts       # LLM streaming + DB save + rate limit
+│       ├── auth/
+│       │   ├── [...nextauth]/route.ts   # NextAuth handler (GET/POST)
+│       │   └── register/route.ts        # POST สมัครสมาชิก — hash password ด้วย bcrypt + rate limit
+│       ├── account/
+│       │   ├── route.ts           # GET profile / PATCH ชื่อ+อีเมล (เช็ค unique email) — ต้อง login
+│       │   └── password/route.ts  # PATCH เปลี่ยนรหัสผ่าน — เช็ค currentPassword ด้วย bcrypt.compare ก่อน + rate limit
+│       ├── upload/route.ts        # STT + rate limit + file size validate — public (ไม่เช็ค session)
+│       ├── analyze/route.ts       # LLM streaming + rate limit — public, บันทึก DB (ผูก userId) เฉพาะถ้ามี session
 │       └── history/
-│           ├── route.ts           # GET list (latest 200, force-dynamic)
-│           └── [id]/route.ts      # GET single + DELETE (force-dynamic)
+│           ├── route.ts           # GET list (userId ของตัวเอง, latest 200, force-dynamic) — ต้อง login
+│           └── [id]/route.ts      # GET single + DELETE (scope ด้วย userId กัน cross-user access, force-dynamic)
 ├── components/
-│   ├── Header.tsx                 # fixed header + spacer, nav (ซ่อนบน mobile), TH/EN + theme toggle, logo→home
-│   ├── BottomNav.tsx              # bottom tab bar เฉพาะ mobile/tablet (md:hidden): หน้าหลัก/ประวัติ/วิธีใช้
+│   ├── Header.tsx                 # fixed header + spacer, nav (ซ่อนบน mobile), TH/EN + theme toggle + login/logout, logo→landing
+│   ├── BottomNav.tsx              # bottom tab bar เฉพาะ mobile/tablet (md:hidden): หน้าหลัก(/app)/ประวัติ/วิธีใช้
 │   ├── Footer.tsx                 # shared footer (ใช้ร่วมทุกหน้า — prop className สำหรับ print:hidden)
 │   ├── UploadZone.tsx             # drag & drop + ปุ่ม "ลบออก" (prop onRemove?: () => void)
 │   ├── AudioPreview.tsx           # custom audio player + waveform (ใช้ 3 จุด: upload, transcript review, history detail/expanded)
@@ -71,13 +85,16 @@ src/
 │   ├── ExportMenu.tsx             # dropdown รวม Copy/Download/Print — ใช้ React Portal กัน overflow clip
 │   └── Bilingual.tsx              # แสดงข้อความ 2 ภาษา (หลัก + รองตัวเล็ก)
 ├── contexts/
+│   ├── AuthProvider.tsx           # wrap next-auth/react SessionProvider (ต้อง client component)
 │   ├── ThemeContext.tsx           # dark/light (อ่าน initial จาก DOM class ที่ inline script ตั้งไว้)
 │   ├── LanguageContext.tsx        # TH/EN — persist ภาษาเลือกลง localStorage (reload ไม่ reset)
 │   └── ToastContext.tsx           # toast + container อยู่ในตัว provider
 ├── types/
-│   └── history.ts                 # HistoryItem interface — shared ระหว่าง history/page.tsx และ history/[id]/page.tsx
+│   ├── history.ts                 # HistoryItem interface — shared ระหว่าง history/page.tsx และ history/[id]/page.tsx
+│   └── next-auth.d.ts             # module augmentation — เพิ่ม session.user.id
 └── lib/
     ├── prisma.ts                  # singleton
+    ├── auth.ts                    # authOptions (NextAuth) — CredentialsProvider + bcrypt compare + JWT callbacks
     ├── whisper.ts                 # Groq Whisper helper (lazy singleton)
     ├── analyzer.ts                # SYSTEM_PROMPT, buildUserPrompt, tryParseJSON — types เท่านั้น ไม่มี Groq instance
     ├── reliability.ts             # คำนวณ confidence score (pure function)
@@ -87,23 +104,46 @@ src/
     ├── print.ts                   # buildPrintHTML — HTML template สำหรับ history list print (ย้ายออกจาก page component)
     ├── historyExport.ts           # buildItemJson/Markdown/Csv — shared ระหว่าง history/page.tsx และ history/[id]/page.tsx
     └── i18n.ts                    # Translations interface + th/en objects
-prisma/schema.prisma               # model Estimation
+prisma/schema.prisma               # model User (email+password), model Estimation (userId optional relation)
 ```
 
 ## รูปแบบสถาปัตยกรรมที่สำคัญ
 
-### Flow การทำงาน (2 ขั้น แยกกัน)
-1. `/api/upload` — รับไฟล์เสียง → คืน transcript (ไม่บันทึก DB)
-2. ผู้ใช้แก้ transcript ได้ (Editable Transcript)
-3. `/api/analyze` — รับ transcript → **stream** LLM response → parse JSON → บันทึก DB
+### Authentication (NextAuth.js v4)
+- **Credentials provider เท่านั้น** — ไม่มี OAuth ไม่มี adapter (session ใช้ JWT strategy ล้วน ไม่ผูก DB) → ไม่ต้องมี model Account/Session/VerificationToken ใน schema
+- `lib/auth.ts` คือ `authOptions` — `authorize()` เช็ค email (lowercase) + `bcrypt.compare` กับ `User.password` ที่ hash ไว้ตอนสมัคร; `jwt`/`session` callback แปะ `user.id` ลง token แล้วลง `session.user.id`
+- `src/types/next-auth.d.ts` — module augmentation เพิ่ม `id` ใน `session.user` (ไม่งั้น TS ไม่รู้จัก field นี้)
+- **สมัครสมาชิกเปิดสาธารณะ** — `POST /api/auth/register` hash password ด้วย bcrypt (cost 10) + validate email/password ก่อน create, มี rate limit เหมือน endpoint อื่น
+- **บัญชีทดสอบ (seed ไว้ใน MongoDB Atlas แล้ว)**: `demo@example.com` / `Demo12345` — หน้า `/login` มีกล่อง "บัญชีสำหรับทดสอบ" พร้อมปุ่ม autofill ให้ reviewer ลองระบบได้ทันทีโดยไม่ต้องสมัคร ถ้า DB ถูกล้าง/ย้าย ต้อง seed ใหม่ด้วยสคริปต์ inline (ดูประวัติ commit) หรือสมัครผ่าน `/register` แล้วแก้ email เป็นค่านี้
+- `src/middleware.ts` ใช้ `next-auth/middleware` default export ป้องกันเฉพาะ `/history/:path*` — ยังไม่ login จะถูก redirect ไป `/login?callbackUrl=...` อัตโนมัติ
+- **`/app` (เครื่องมือจริง) เป็น public — ไม่ login ก็ใช้งานได้เต็มรูปแบบ** เพียงแค่ผลลัพธ์จะไม่ถูกบันทึกลง DB (ไม่มี `userId` ให้ผูก) — `/api/upload` และ `/api/analyze` จึงไม่เช็ค session แบบบังคับ (401) อีกต่อไป, `/api/analyze` อ่าน `session?.user?.id` แบบ optional แล้วข้ามขั้น `prisma.estimation.create` ถ้าไม่มี userId
+- `app/app/page.tsx` โชว์ banner แจ้งเตือน (`t.guestModeNotice` + ลิงก์ `t.loginNav`) เมื่อ `useSession().status === 'unauthenticated'` ให้รู้ว่าผลลัพธ์จะไม่ถูกเก็บ
+- **หน้า public**: landing (`/`), `/app`, `/guide`, `/login`, `/register` — ไม่ต้อง login (`/history`, `/history/[id]`, `/account` ยังบังคับ login ผ่าน middleware)
+- **จัดการบัญชี (`/account`)**: แก้ชื่อ/อีเมล ผ่าน `PATCH /api/account`, เปลี่ยนรหัสผ่านผ่าน `PATCH /api/account/password` (ต้องส่ง `currentPassword` มาเช็คก่อนเสมอ) — คลิก avatar/อีเมลใน `Header.tsx` (ทั้ง mobile ไอคอนกลม + desktop เห็นอีเมลเต็ม) เพื่อเข้าหน้านี้
+- **sync session หลังแก้โปรไฟล์โดยไม่ต้อง re-login**: `lib/auth.ts` เพิ่ม `trigger === 'update'` ใน `jwt` callback รับค่าจาก `useSession().update({ name, email })` ที่เรียกฝั่ง client หลัง PATCH สำเร็จ — ถ้าลืมเรียก `update()` header จะยังโชว์อีเมล/ชื่อเก่าจนกว่าจะ refresh token รอบถัดไป
+- API ที่แตะข้อมูล history (`/api/history*`) ยังคง เช็ค `getServerSession(authOptions)` บังคับ (401 ถ้าไม่มี session) เพราะดูประวัติของใครก็ต้องรู้ว่าใครถาม — defense-in-depth เพราะ middleware ไม่ครอบ `/api/*`
+- **ประวัติแยกต่อ user**: `Estimation.userId` (optional relation ไป `User`) — query/delete ทุกจุด filter ด้วย `userId: session.user.id` เสมอ (ห้าม `findUnique`/`delete` ด้วย id อย่างเดียว เพราะจะข้าม user อื่นได้ — ใช้ `findFirst`/`deleteMany` ที่มี `userId` ใน where แทน)
+- record ที่มาจาก guest (ไม่ login ตอน analyze) หรือ record เก่าก่อนมี auth จะไม่มี `userId` (เป็น `null`) → มองไม่เห็นในหน้าประวัติของใคร (ข้อมูลกำพร้า ยอมรับได้สำหรับโปรเจกต์นี้)
+- `contexts/AuthProvider.tsx` wrap `next-auth/react` `SessionProvider` (ต้องเป็น client component) — ครอบใน `layout.tsx` เป็น provider ชั้นนอกสุด
+- `Header.tsx` ใช้ `useSession()` โชว์ avatar+email / ปุ่ม logout (`signOut`) หรือปุ่ม login ตามสถานะ — เช็ค `status === 'loading'` ก่อน กัน UI กระพริบ
 
-### Auto-transcribe (UX flow ฝั่ง client)
+### Flow การทำงาน (2 ขั้น แยกกัน, login ได้ไม่บังคับ)
+1. `/api/upload` — รับไฟล์เสียง → คืน transcript (ไม่บันทึก DB, ไม่ต้อง login)
+2. ผู้ใช้แก้ transcript ได้ (Editable Transcript)
+3. `/api/analyze` — รับ transcript → **stream** LLM response → parse JSON → บันทึก DB พร้อม `userId` จาก session **เฉพาะกรณี login อยู่** — guest ได้ผลลัพธ์เหมือนกันแต่ไม่ถูกบันทึก
+
+### Input mode: ไฟล์เสียง vs พิมพ์ข้อความ (`app/app/page.tsx`)
+- แท็บสลับ `inputMode: 'audio' | 'text'` บนการ์ดขั้นแรก — โหมดพิมพ์ข้อความข้าม STT ไปตรงสู่หน้าตรวจสอบ (`step: 'transcribed'`) โดยไม่มี `file`
+- flag `manualEntry` แยกกรณี "พิมพ์เอง" ออกจากกรณี reanalyze prefill (ทั้งคู่ไม่มี `file` เหมือนกัน) — ใช้ปรับ hint text/ไอคอน/label ปุ่มใน review step ให้ตรงบริบท
+- ambient waveform decoration โชว์เฉพาะ `inputMode === 'audio'`
+
+### Auto-transcribe (UX flow ฝั่ง client, เฉพาะโหมดไฟล์เสียง)
 - เลือก/วางไฟล์ปุ๊บ `transcribeFile(file)` ยิงทันที — **เรียกจาก event handler เท่านั้น ห้ามย้ายไป `useEffect` on file** (StrictMode จะ double-POST `/api/upload` เปลือง rate limit)
 - `transcribeFile` รับไฟล์เป็น parameter (กัน stale closure) + มี `AbortController` ใน ref (abort ตอน reset/เปลี่ยนไฟล์)
 - ปุ่มถอดเสียงไม่มีแล้ว — เหลือ status ระหว่างรอ + ปุ่ม Retry (`t.retryTranscribe`) ตอน error
-- "ถอดเสียงใหม่": ถ้ามี `file` → ถอดทันที; ไม่มี (มาจาก reanalyze prefill) → กลับ idle
+- "ถอดเสียงใหม่": ถ้ามี `file` → ถอดทันที; ไม่มี (มาจาก reanalyze prefill หรือ manualEntry) → กลับ idle (label ปุ่มสลับเป็น `t.editAgain` ถ้าเป็น manualEntry)
 - path `reanalyze_prefill` ไม่ auto-transcribe (ไม่มี file)
-- step indicator 3 ขั้น (อัปโหลด → ตรวจข้อความ → ผลลัพธ์) แสดงตลอด, mapping ผ่าน `STEP_ORDER`
+- step indicator 3 ขั้น (เริ่มต้น → ตรวจข้อความ → ผลลัพธ์) แสดงตลอด, mapping ผ่าน `STEP_ORDER`
 
 ### Scroll/focus management (page.tsx)
 - `useEffect` on `[step]`: transcribed → scroll ไป transcript card + focus textarea (เฉพาะ `pointer: fine` กัน keyboard เด้งบน mobile); done → scroll ไป result
@@ -196,7 +236,7 @@ prisma/schema.prisma               # model Estimation
 
 ## สถานะปัจจุบัน
 
-ระบบทำงานครบทุก requirement + bonus features เยอะมาก (streaming, editable transcript + audio replay, history CRUD + detail page + audio replay, search/pagination, reliability score, audio preview + remove file, idle waveform animation, toast, warm dark mode (zinc), TH/EN bilingual content + language persist, rate limiting, export JSON/MD/CSV/PDF, guide page + LINE OA, responsive + bottom nav)
+ระบบทำงานครบทุก requirement + bonus features เยอะมาก (streaming, editable transcript + audio replay, history CRUD + detail page + audio replay, search/pagination, reliability score, audio preview + remove file, idle waveform animation, toast, warm dark mode (zinc), TH/EN bilingual content + language persist, rate limiting, export JSON/MD/CSV/PDF, guide page + LINE OA, responsive + bottom nav, landing page แยกจากเครื่องมือ, input mode ไฟล์เสียง/พิมพ์ข้อความ, login/register + ประวัติแยกต่อผู้ใช้)
 
 โค้ดผ่าน refactoring แล้ว: shared types, dead code ลบออก, error handling ครบ, i18n ครบทุก label
 

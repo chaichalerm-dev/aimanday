@@ -129,7 +129,7 @@ export default function HistoryDetailPage() {
       'reanalyze_prefill',
       JSON.stringify({ transcript: item.transcript, audioName: item.audioName }),
     );
-    router.push('/');
+    router.push('/app');
   };
 
   return (

@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLang } from '@/contexts/LanguageContext';
 
@@ -9,6 +11,35 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   const { lang, t, toggleLang } = useLang();
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const logoutRef = useRef<HTMLDivElement>(null);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut({ callbackUrl: '/' });
+    } catch {
+      // Network hiccup (e.g. dev server restart) — don't crash, just hard-redirect
+      window.location.href = '/';
+    }
+  };
+
+  // Close the logout confirm popover on outside click / Esc
+  useEffect(() => {
+    if (!confirmingLogout) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (logoutRef.current && !logoutRef.current.contains(e.target as Node)) {
+        setConfirmingLogout(false);
+      }
+    };
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setConfirmingLogout(false);
+    document.addEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [confirmingLogout]);
 
   return (
     <>
@@ -37,9 +68,9 @@ export function Header() {
           {/* Nav links — hidden on mobile (replaced by BottomNav) */}
           <nav className="hidden md:flex items-center gap-0.5">
             <Link
-              href="/"
+              href="/app"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                pathname === '/'
+                pathname === '/app'
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                   : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white'
               }`}
@@ -125,6 +156,93 @@ export function Header() {
               </svg>
             )}
           </button>
+
+          {/* Account controls */}
+          {status === 'loading' ? (
+            <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-zinc-700 animate-pulse" style={{ transition: 'none' }} />
+          ) : session?.user ? (
+            <div className="flex items-center gap-1.5">
+              <Link
+                href="/account"
+                title={session.user.email ?? ''}
+                className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium max-w-[36px] sm:max-w-[160px] transition-colors ${
+                  pathname === '/account'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : 'bg-gray-100 dark:bg-zinc-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-zinc-600'
+                }`}
+              >
+                <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                  {(session.user.email ?? '?').charAt(0).toUpperCase()}
+                </span>
+                <span className="hidden sm:inline truncate">{session.user.email}</span>
+              </Link>
+              <div ref={logoutRef} className="relative">
+                <button
+                  onClick={() => setConfirmingLogout(v => !v)}
+                  aria-label={t.logout}
+                  title={t.logout}
+                  className="w-8 h-8 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-700 flex items-center justify-center text-gray-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 dark:hover:text-red-400"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+
+                {confirmingLogout && (
+                  <div
+                    role="dialog"
+                    aria-label={t.logoutConfirmTitle}
+                    className="pop-in absolute right-0 top-full mt-3 w-64 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-2xl p-4 z-50"
+                    style={{ animation: 'popIn 150ms ease-out' }}
+                  >
+                    {/* Caret pointing back at the trigger button */}
+                    <div
+                      className="absolute -top-1.5 right-3 w-3 h-3 bg-white dark:bg-zinc-800 border-l border-t border-gray-200 dark:border-zinc-700 rotate-45"
+                      aria-hidden
+                    />
+
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-9 h-9 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 flex items-center justify-center">
+                        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                      </span>
+                      <div className="min-w-0 pt-0.5">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{t.logoutConfirmTitle}</p>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-slate-400 leading-relaxed break-words">
+                          {t.logoutConfirmDesc.replace('{email}', session.user.email ?? '')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3.5 border-t border-gray-100 dark:border-zinc-700 flex items-center gap-2">
+                      <button
+                        onClick={() => setConfirmingLogout(false)}
+                        className="flex-1 px-3 py-1.5 text-xs font-medium border border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-600 dark:text-slate-400 rounded-lg"
+                      >
+                        {t.logoutCancel}
+                      </button>
+                      <button
+                        onClick={() => void handleSignOut()}
+                        className="flex-1 px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                      >
+                        {t.logout}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
+            >
+              {t.loginNav}
+            </Link>
+          )}
         </div>
       </div>
       </header>

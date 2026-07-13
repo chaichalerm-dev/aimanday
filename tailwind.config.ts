@@ -11,8 +11,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // Sarabun covers Thai + Latin — fallback to system sans
-        sans: ['var(--font-sarabun)', 'Sarabun', 'system-ui', 'sans-serif'],
+        // Prompt covers Thai + Latin — fallback to system sans
+        sans: ['var(--font-prompt)', 'Prompt', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         // Slightly larger base for Thai readability

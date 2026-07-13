@@ -195,7 +195,7 @@ export default function HistoryPage() {
       'reanalyze_prefill',
       JSON.stringify({ transcript: item.transcript, audioName: item.audioName }),
     );
-    router.push('/');
+    router.push('/app');
   };
 
   const handleExpandedAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,7 +211,7 @@ export default function HistoryPage() {
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-12">
         {/* Page header */}
         <div className="mb-6">
-          <Link href="/" className="text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 flex items-center gap-1 text-sm mb-2 w-fit">
+          <Link href="/app" className="text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 flex items-center gap-1 text-sm mb-2 w-fit">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -275,7 +275,7 @@ export default function HistoryPage() {
             </div>
             <p className="text-base font-semibold text-gray-700 dark:text-slate-300">{t.historyEmpty}</p>
             <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">{t.historyEmptyDesc}</p>
-            <Link href="/" className="mt-5 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm">
+            <Link href="/app" className="mt-5 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>

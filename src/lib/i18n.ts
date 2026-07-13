@@ -3,6 +3,12 @@ export interface Translations {
   homeNav: string;
   historyNav: string;
   guideNav: string;
+  loginNav: string;
+  logout: string;
+  logoutConfirmTitle: string;
+  logoutConfirmDesc: string;
+  logoutCancel: string;
+  guestModeNotice: string;
   // Hero
   appTitle: string;
   appSubtitle: string;
@@ -12,6 +18,13 @@ export interface Translations {
   supports: string;
   autoTranscribeNote: string;
   changeFile: string;
+  // Input mode toggle (audio upload vs typed text)
+  inputModeAudio: string;
+  inputModeText: string;
+  textModePlaceholder: string;
+  textModeContinue: string;
+  manualEntryHint: string;
+  editAgain: string;
   // Buttons
   analyzeAiBtn: string;
   retranscribe: string;
@@ -121,6 +134,12 @@ export const th: Translations = {
   homeNav: 'หน้าหลัก',
   historyNav: 'ประวัติ',
   guideNav: 'วิธีใช้',
+  loginNav: 'เข้าสู่ระบบ',
+  logout: 'ออกจากระบบ',
+  logoutConfirmTitle: 'ออกจากระบบ?',
+  logoutConfirmDesc: 'คุณต้องการออกจากระบบบัญชี {email} ใช่หรือไม่',
+  logoutCancel: 'ยกเลิก',
+  guestModeNotice: 'คุณยังไม่ได้เข้าสู่ระบบ ใช้งานได้ตามปกติ แต่ผลลัพธ์จะไม่ถูกบันทึกในประวัติ',
   appTitle: 'AI Manday Estimator',
   appSubtitle: 'อัปโหลดไฟล์เสียง Requirement เพื่อรับ SOW และประมาณการ Manday จาก AI',
   dropHere: 'วางไฟล์เสียงที่นี่ หรือ',
@@ -128,6 +147,12 @@ export const th: Translations = {
   supports: 'รองรับ .mp3, .wav, .m4a — ไม่เกิน ~25 MB',
   autoTranscribeNote: 'ระบบจะถอดเสียงให้อัตโนมัติทันทีที่เลือกไฟล์',
   changeFile: 'คลิกหรือวางไฟล์ใหม่เพื่อเปลี่ยนไฟล์',
+  inputModeAudio: 'ไฟล์เสียง',
+  inputModeText: 'พิมพ์ข้อความ',
+  textModePlaceholder: 'พิมพ์รายละเอียด Requirement ที่นี่ เช่น "อยากได้เว็บอีคอมเมิร์ซ มีระบบตะกร้าสินค้า ระบบสมาชิก และชำระเงินผ่านบัตรเครดิต..."',
+  textModeContinue: 'ดำเนินการต่อ',
+  manualEntryHint: 'ตรวจสอบข้อความให้ครบถ้วนก่อนส่งให้ AI วิเคราะห์',
+  editAgain: 'แก้ไขข้อความใหม่',
   analyzeAiBtn: 'วิเคราะห์ด้วย AI',
   retranscribe: 'ถอดเสียงใหม่',
   retryTranscribe: 'ลองถอดเสียงอีกครั้ง',
@@ -136,7 +161,7 @@ export const th: Translations = {
   editTranscriptHint: 'AI ถอดเสียงอาจมีข้อผิดพลาด สามารถแก้ไขข้อความก่อนส่งให้ AI วิเคราะห์ได้',
   transcribing: 'กำลังถอดเสียง…',
   analyzing: 'กำลังวิเคราะห์…',
-  stepUpload: 'อัปโหลด',
+  stepUpload: 'เริ่มต้น',
   stepReview: 'ตรวจข้อความ',
   stepResult: 'ผลลัพธ์',
   totalManday: 'ประมาณการ Manday รวม',
@@ -220,6 +245,12 @@ export const en: Translations = {
   homeNav: 'Home',
   historyNav: 'History',
   guideNav: 'Guide',
+  loginNav: 'Log In',
+  logout: 'Log Out',
+  logoutConfirmTitle: 'Log out?',
+  logoutConfirmDesc: 'Are you sure you want to log out of {email}?',
+  logoutCancel: 'Cancel',
+  guestModeNotice: "You're not logged in — everything still works, but results won't be saved to your history.",
   appTitle: 'AI Manday Estimator',
   appSubtitle: 'Upload an audio requirement recording to get AI-generated SOW and manday estimate',
   dropHere: 'Drop audio file here, or',
@@ -227,6 +258,12 @@ export const en: Translations = {
   supports: 'Supports .mp3, .wav, .m4a — max ~25 MB',
   autoTranscribeNote: 'Transcription starts automatically when you select a file',
   changeFile: 'Click or drop a new file to replace',
+  inputModeAudio: 'Audio File',
+  inputModeText: 'Type Text',
+  textModePlaceholder: 'Type your requirement details here, e.g. "We need an e-commerce site with a shopping cart, membership system, and credit card payments..."',
+  textModeContinue: 'Continue',
+  manualEntryHint: 'Double-check your text is complete before sending it to AI for analysis',
+  editAgain: 'Edit Again',
   analyzeAiBtn: 'Analyze with AI',
   retranscribe: 'Re-transcribe',
   retryTranscribe: 'Retry transcription',
@@ -235,7 +272,7 @@ export const en: Translations = {
   editTranscriptHint: 'STT may not be 100% accurate. Edit the text below before sending to AI.',
   transcribing: 'Transcribing audio…',
   analyzing: 'Analyzing requirements…',
-  stepUpload: 'Upload',
+  stepUpload: 'Start',
   stepReview: 'Review',
   stepResult: 'Result',
   totalManday: 'Total Manday Estimate',

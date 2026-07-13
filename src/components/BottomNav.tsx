@@ -12,7 +12,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    href: '/',
+    href: '/app',
     labelKey: 'homeNav',
     icon: (active) => active ? (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
