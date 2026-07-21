@@ -28,9 +28,9 @@ function ReliabilityBadge({
   const [showTooltip, setShowTooltip] = useState(false);
 
   const cfg = {
-    high:   { bg: 'bg-green-400/20',  text: 'text-green-200',  ring: 'ring-green-400/40',  dot: 'bg-green-400',  label: t.reliabilityHigh },
-    medium: { bg: 'bg-yellow-400/20', text: 'text-yellow-200', ring: 'ring-yellow-400/40', dot: 'bg-yellow-400', label: t.reliabilityMedium },
-    low:    { bg: 'bg-red-400/20',    text: 'text-red-200',    ring: 'ring-red-400/40',    dot: 'bg-red-400',    label: t.reliabilityLow },
+    high:   { bg: 'bg-green-100 dark:bg-green-400/20',  text: 'text-green-700 dark:text-green-200',  ring: 'ring-green-300 dark:ring-green-400/40',  dot: 'bg-green-500 dark:bg-green-400',  label: t.reliabilityHigh },
+    medium: { bg: 'bg-yellow-100 dark:bg-yellow-400/20', text: 'text-yellow-700 dark:text-yellow-200', ring: 'ring-yellow-300 dark:ring-yellow-400/40', dot: 'bg-yellow-500 dark:bg-yellow-400', label: t.reliabilityMedium },
+    low:    { bg: 'bg-red-100 dark:bg-red-400/20',    text: 'text-red-700 dark:text-red-200',    ring: 'ring-red-300 dark:ring-red-400/40',    dot: 'bg-red-500 dark:bg-red-400',    label: t.reliabilityLow },
   }[reliability.level];
 
   return (
