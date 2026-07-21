@@ -19,7 +19,7 @@ const ResultCard = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="h-48 rounded-2xl bg-gray-100 dark:bg-zinc-800 animate-pulse"
+        className="h-48 animate-pulse rounded-[6px] bg-[var(--paper-muted)]"
         style={{ transition: 'none' }}
       />
     ),
@@ -36,11 +36,6 @@ const STEP_ORDER: Record<Step, number> = {
   analyzing: 1,
   done: 3,
 };
-
-// Deterministic waveform data — 32 bars with varied heights, speeds and offsets
-const WAVE_HEIGHTS  = [28,45,62,48,80,58,35,72,50,88,42,65,82,47,70,56,32,85,60,76,44,55,90,46,68,78,52,38,60,44,30,50];
-const WAVE_DURATIONS= [1.4,1.7,1.2,1.9,1.1,1.6,1.8,1.3,1.5,1.2,1.7,1.4,1.1,1.8,1.5,1.3,1.6,1.2,1.9,1.4,1.1,1.7,1.5,1.3,1.8,1.2,1.6,1.4,1.9,1.1,1.5,1.7];
-const WAVE_DELAYS   = [0,.3,.12,.5,.18,.4,.25,.07,.45,.22,.35,.1,.42,.28,.15,.5,.08,.38,.2,.12,.47,.33,.05,.43,.17,.27,.48,.1,.35,.22,.4,.15];
 
 // Client-safe JSON parser (no server imports)
 function parseEstimation(text: string): EstimationResult | null {
@@ -265,35 +260,33 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <div className="print:hidden"><Header /></div>
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-12 print:py-0 print:max-w-full print:px-0">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 sm:py-12 print:max-w-full print:px-0 print:py-0">
         {/* Hero */}
-        <div className="text-center mb-8 print:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="mb-8 border-b border-[var(--line)] pb-6 print:hidden">
+          <h1 className="text-3xl font-semibold tracking-[-0.025em] text-[var(--ink)] sm:text-4xl">
             {t.appTitle}
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-gray-500 dark:text-slate-400 max-w-xl mx-auto">
+          <p className="mt-2 max-w-2xl text-sm text-[var(--muted)] sm:text-base">
             {t.appSubtitle}
           </p>
         </div>
 
         {/* Step indicator — แสดงตลอดให้รู้ว่าอยู่ขั้นไหน (เดิมโผล่เฉพาะตอนรอ) */}
-        <div className="flex items-center justify-center gap-3 mb-6 print:hidden">
+        <div className="mb-6 grid grid-cols-3 border-y border-[var(--line)] bg-[var(--paper)] print:hidden">
           {[t.stepUpload, t.stepReview, t.stepResult].map((label, i) => {
             const current = STEP_ORDER[step];
             const isDone = i < current;
             const isActive = i === current;
             const isPulsing = isActive && isProcessing;
             return (
-              <div key={label} className="flex items-center gap-3">
-                {i > 0 && <div className="w-8 h-px bg-gray-300 dark:bg-zinc-600" />}
-                <div className="flex items-center gap-2">
+              <div key={label} className={`flex items-center gap-2 px-2 py-3 sm:px-4 ${i > 0 ? 'border-l border-[var(--line)]' : ''}`}>
                   <span
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                    className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
                       isDone
-                        ? 'bg-green-500 text-white'
+                        ? 'bg-emerald-700 text-white'
                         : isActive
-                          ? `bg-blue-600 text-white${isPulsing ? ' animate-pulse' : ''}`
-                          : 'bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-slate-400'
+                          ? `bg-[var(--accent)] text-white${isPulsing ? ' animate-pulse' : ''}`
+                          : 'border border-[var(--line)] text-[var(--muted)]'
                     }`}
                     style={{ transition: 'none' }}
                   >
@@ -308,15 +301,14 @@ export default function Home() {
                   <span
                     className={`text-xs font-medium ${
                       isDone
-                        ? 'text-green-600 dark:text-green-400'
+                        ? 'text-emerald-700 dark:text-emerald-400'
                         : isActive
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-gray-400 dark:text-slate-500'
+                          ? 'text-[var(--ink)]'
+                          : 'text-[var(--muted)]'
                     }`}
                   >
                     {label}
                   </span>
-                </div>
               </div>
             );
           })}
@@ -324,12 +316,12 @@ export default function Home() {
 
         {/* Guest mode notice — logged out users can still use the tool, just no saved history */}
         {authStatus === 'unauthenticated' && (
-          <div className="mb-5 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl print:hidden">
-            <svg className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mb-5 flex items-center gap-3 border-l-2 border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-3 print:hidden">
+            <svg className="h-4 w-4 flex-shrink-0 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="flex-1 text-xs text-blue-700 dark:text-blue-300">{t.guestModeNotice}</p>
-            <Link href="/login" className="flex-shrink-0 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:underline whitespace-nowrap">
+            <p className="flex-1 text-xs text-[var(--ink)]">{t.guestModeNotice}</p>
+            <Link href="/login" className="flex-shrink-0 whitespace-nowrap text-xs font-semibold text-[var(--accent)] hover:underline">
               {t.loginNav}
             </Link>
           </div>
@@ -337,19 +329,19 @@ export default function Home() {
 
         {/* Upload card */}
         {(step === 'idle' || step === 'transcribing') && (
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-8 mb-5">
+          <div className="ui-panel mb-5 p-5 sm:p-7">
             {/* Input mode tabs — audio upload vs typing the requirement directly */}
-            <div className="flex items-center gap-2 mb-5" role="tablist">
+            <div className="mb-6 flex items-center border-b border-[var(--line)]" role="tablist">
               <button
                 type="button"
                 role="tab"
                 aria-selected={inputMode === 'audio'}
                 onClick={() => setInputMode('audio')}
                 disabled={isProcessing}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
                   inputMode === 'audio'
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700'
+                    ? 'border-[var(--accent)] text-[var(--ink)]'
+                    : 'border-transparent text-[var(--muted)] hover:text-[var(--ink)]'
                 }`}
               >
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -364,10 +356,10 @@ export default function Home() {
                 aria-selected={inputMode === 'text'}
                 onClick={() => setInputMode('text')}
                 disabled={isProcessing}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
                   inputMode === 'text'
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700'
+                    ? 'border-[var(--accent)] text-[var(--ink)]'
+                    : 'border-transparent text-[var(--muted)] hover:text-[var(--ink)]'
                 }`}
               >
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -405,7 +397,7 @@ export default function Home() {
                 )}
                 {/* ถอดเสียงเริ่มอัตโนมัติเมื่อเลือกไฟล์ — เหลือแค่ status ระหว่างรอ + retry ตอน error */}
                 {step === 'transcribing' && (
-                  <div className="mt-5 flex items-center justify-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+                  <div className="mt-5 flex items-center justify-center gap-2 text-sm font-medium text-[var(--accent)]">
                     <svg className="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" style={{ transition: 'none' }}>
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -417,7 +409,7 @@ export default function Home() {
                   <div className="mt-4">
                     <button
                       onClick={() => void transcribeFile(file)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 text-sm"
+                      className="ui-button-primary w-full px-6 py-3 text-sm"
                     >
                       <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -434,12 +426,12 @@ export default function Home() {
                   onChange={e => setEditedTranscript(e.target.value)}
                   rows={7}
                   placeholder={t.textModePlaceholder}
-                  className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 p-4 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className="ui-field resize-y p-4 text-sm placeholder:text-[var(--muted)]"
                 />
                 <button
                   onClick={handleTextModeContinue}
                   disabled={!editedTranscript.trim()}
-                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white disabled:text-gray-400 dark:disabled:text-slate-500 font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 text-sm"
+                  className="ui-button-primary mt-4 w-full px-6 py-3 text-sm disabled:cursor-not-allowed disabled:border-[var(--line)] disabled:bg-[var(--paper-muted)] disabled:text-[var(--muted)]"
                 >
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -451,41 +443,19 @@ export default function Home() {
           </div>
         )}
 
-        {/* Ambient waveform — only on idle audio mode, purely decorative */}
-        {step === 'idle' && inputMode === 'audio' && (
-          <div
-            className="flex items-end justify-center gap-0.5 h-12 mt-5 opacity-[0.22] dark:opacity-[0.14] pointer-events-none print:hidden"
-            aria-hidden
-          >
-            {WAVE_HEIGHTS.map((h, i) => (
-              <div
-                key={i}
-                className="wave-bar w-1 rounded-full bg-blue-500 dark:bg-blue-400"
-                style={{
-                  height: `${h}%`,
-                  transformOrigin: '50% 100%',
-                  transition: 'none',
-                  animationDuration: `${WAVE_DURATIONS[i]}s`,
-                  animationDelay: `${WAVE_DELAYS[i]}s`,
-                }}
-              />
-            ))}
-          </div>
-        )}
-
         {/* Editable transcript card */}
         {(step === 'transcribed' || step === 'analyzing') && (
           <div
             ref={transcriptCardRef}
-            className="scroll-mt-20 bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-8 mb-5"
+            className="ui-panel mb-5 scroll-mt-20 p-5 sm:p-7"
           >
             {/* Re-analyze source banner */}
             {prefillAudioName && (
-              <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
-                <svg className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="mb-4 flex items-center gap-2 border-l-2 border-[var(--accent)] bg-[var(--accent-soft)] px-3 py-2">
+                <svg className="h-3.5 w-3.5 flex-shrink-0 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-xs text-blue-700 dark:text-blue-300 truncate">
+                <span className="truncate text-xs text-[var(--ink)]">
                   {prefillAudioName}
                 </span>
               </div>
@@ -494,8 +464,8 @@ export default function Home() {
               <div>
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   {manualEntry ? (
-                    <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+                      <svg className="h-3 w-3 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.862 4.487z" />
                       </svg>
                     </span>
@@ -526,7 +496,7 @@ export default function Home() {
               onChange={e => setEditedTranscript(e.target.value)}
               disabled={step === 'analyzing'}
               rows={6}
-              className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 p-4 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="ui-field resize-y p-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             />
 
             {/* Streaming terminal */}
@@ -559,7 +529,7 @@ export default function Home() {
               <button
                 onClick={handleAnalyze}
                 disabled={!editedTranscript.trim() || step === 'analyzing'}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white disabled:text-gray-400 dark:disabled:text-slate-500 font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 text-sm"
+                className="ui-button-primary flex-1 px-6 py-3 text-sm disabled:cursor-not-allowed disabled:border-[var(--line)] disabled:bg-[var(--paper-muted)] disabled:text-[var(--muted)]"
               >
                 {step === 'analyzing' ? (
                   <>
@@ -581,7 +551,7 @@ export default function Home() {
               {step !== 'analyzing' && (
                 <button
                   onClick={handleRetranscribe}
-                  className="px-4 py-3 border border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-700 dark:text-slate-300 font-medium rounded-xl text-sm flex items-center gap-1.5"
+                  className="ui-button-secondary px-4 py-3 text-sm"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -596,16 +566,14 @@ export default function Home() {
         {/* Results */}
         {result && (
           <div ref={resultRef} className="scroll-mt-20">
-            <div className="flex items-center justify-between mb-4 print:hidden">
-              <div className="h-px flex-1 bg-gray-200 dark:bg-zinc-700" />
-              <span className="px-3 text-xs text-gray-400 dark:text-slate-500 font-medium">{t.resultLabel}</span>
-              <div className="h-px flex-1 bg-gray-200 dark:bg-zinc-700" />
+            <div className="mb-4 border-b border-[var(--line)] pb-2 print:hidden">
+              <span className="eyebrow">{t.resultLabel}</span>
             </div>
             <ResultCard result={result} />
             <div className="mt-5 text-center print:hidden">
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 border border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-700 dark:text-slate-300 font-medium rounded-xl text-sm"
+                className="ui-button-secondary px-6 py-2.5 text-sm"
               >
                 {t.reset}
               </button>

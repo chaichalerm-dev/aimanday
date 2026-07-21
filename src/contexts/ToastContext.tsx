@@ -52,7 +52,7 @@ function Toast({ toast, onRemove }: { toast: ToastItem; onRemove: (id: string) =
     info: {
       bg: 'bg-gray-900 dark:bg-gray-800 border-gray-700 dark:border-gray-600',
       icon: (
-        <span className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-orange-600">
           <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01" />
           </svg>
@@ -66,7 +66,7 @@ function Toast({ toast, onRemove }: { toast: ToastItem; onRemove: (id: string) =
   return (
     <div
       onClick={() => onRemove(toast.id)}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl cursor-pointer select-none ${bg}`}
+      className={`flex cursor-pointer select-none items-center gap-3 rounded-[6px] border px-4 py-3 shadow-lg ${bg}`}
       style={{
         transition: 'transform 300ms ease, opacity 300ms ease',
         transform: visible ? 'translateX(0)' : 'translateX(calc(100% + 1rem))',

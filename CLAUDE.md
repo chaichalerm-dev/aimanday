@@ -10,20 +10,11 @@
 
 ## Tech Stack
 
-- **Next.js 14** (App Router) + **TypeScript** (strict mode)
-- **Tailwind CSS** + **Prompt font** (รองรับ Thai + Latin, ทรงเรขาคณิตโค้งมน หน้าตาทันสมัยแบบ SaaS)
-- **Prisma 5** + **MongoDB Atlas**
-- **NextAuth.js v4** (Credentials provider, JWT session) — login/register ด้วย email+password, แยกประวัติต่อผู้ใช้
-- **Groq SDK** — ใช้ทั้ง Whisper STT (`whisper-large-v3`) และ LLM (`openai/gpt-oss-120b`)
-- ใช้ **Groq API อย่างเดียว** — `openai/gpt-oss-120b` เป็น OSS model ที่ Groq ให้บริการ (ไม่ได้ใช้ OpenAI API โดยตรง)
+ใช้ **Groq API อย่างเดียว** — `openai/gpt-oss-120b` เป็น OSS model ที่ Groq ให้บริการ (ไม่ได้ใช้ OpenAI API โดยตรง)
 
 ## คำสั่งที่ใช้บ่อย
 
 ```bash
-npm run dev              # รัน dev server (localhost:3000)
-npm run build            # production build
-npm run prisma:generate  # generate Prisma client (ใช้ dotenv -e .env.local)
-npm run prisma:push      # push schema ไป MongoDB (ใช้ dotenv -e .env.local)
 npx tsc --noEmit         # ตรวจ TypeScript (เช็คทุกครั้งหลังแก้โค้ด — โปรเจกต์นี้ไม่มี error เลย รักษาไว้)
 ```
 
@@ -39,73 +30,6 @@ NEXTAUTH_URL="http://localhost:3000"   # base URL ของแอป — บน 
 ```
 
 **หมายเหตุ:** DATABASE_URL ต้องมี `/aimanday` (ชื่อ database) ก่อน `?` ไม่งั้น Prisma error P1013
-
-## สภาพแวดล้อม
-
-- **Windows + PowerShell** — ใช้ syntax `$env:VAR`, `;` แทน `&&`
-- working directory: `C:\xampp\htdocs\myproject\aimanday`
-- git initialized + pushed ขึ้น GitHub แล้ว (branch: master)
-
-## โครงสร้างโปรเจกต์
-
-```
-src/
-├── middleware.ts                  # next-auth middleware — ป้องกันเฉพาะ /history/:path* (/app เป็น public)
-├── app/
-│   ├── page.tsx                   # Landing page (public) — hero/features/how-it-works, CTA → /app
-│   ├── app/page.tsx               # เครื่องมือจริง (public — ไม่ login ก็ใช้ได้): input mode (ไฟล์เสียง/พิมพ์ข้อความ) → transcribe/edit → analyze (stream) → result — โชว์ guest banner ถ้าไม่ login
-│   ├── login/page.tsx             # ฟอร์ม login (signIn credentials) — รองรับ ?callbackUrl
-│   ├── register/page.tsx          # ฟอร์ม สมัครสมาชิก → POST /api/auth/register → auto sign-in
-│   ├── account/page.tsx           # จัดการบัญชี: แก้ชื่อ/อีเมล + เปลี่ยนรหัสผ่าน — ต้อง login
-│   ├── layout.tsx                 # providers (Auth/Theme/Lang/Toast) + BottomNav + spacer + inline theme script
-│   ├── globals.css                # Tailwind + print CSS + dark transitions
-│   ├── guide/page.tsx             # หน้าวิธีใช้งาน (public) + ติดต่อผ่าน LINE OA
-│   ├── history/
-│   │   ├── page.tsx               # ประวัติของ user ที่ login: search + pagination (5/หน้า) + expand inline + export ต่อ item — ต้อง login
-│   │   └── [id]/page.tsx          # หน้า detail เต็มต่อ item (reuse ResultCard) — ต้อง login
-│   └── api/
-│       ├── auth/
-│       │   ├── [...nextauth]/route.ts   # NextAuth handler (GET/POST)
-│       │   └── register/route.ts        # POST สมัครสมาชิก — hash password ด้วย bcrypt + rate limit
-│       ├── account/
-│       │   ├── route.ts           # GET profile / PATCH ชื่อ+อีเมล (เช็ค unique email) — ต้อง login
-│       │   └── password/route.ts  # PATCH เปลี่ยนรหัสผ่าน — เช็ค currentPassword ด้วย bcrypt.compare ก่อน + rate limit
-│       ├── upload/route.ts        # STT + rate limit + file size validate — public (ไม่เช็ค session)
-│       ├── analyze/route.ts       # LLM streaming + rate limit — public, บันทึก DB (ผูก userId) เฉพาะถ้ามี session
-│       └── history/
-│           ├── route.ts           # GET list (userId ของตัวเอง, latest 200, force-dynamic) — ต้อง login
-│           └── [id]/route.ts      # GET single + DELETE (scope ด้วย userId กัน cross-user access, force-dynamic)
-├── components/
-│   ├── Header.tsx                 # fixed header + spacer, nav (ซ่อนบน mobile), TH/EN + theme toggle + login/logout, logo→landing
-│   ├── BottomNav.tsx              # bottom tab bar เฉพาะ mobile/tablet (md:hidden): หน้าหลัก(/app)/ประวัติ/วิธีใช้
-│   ├── Footer.tsx                 # shared footer (ใช้ร่วมทุกหน้า — prop className สำหรับ print:hidden)
-│   ├── UploadZone.tsx             # drag & drop + ปุ่ม "ลบออก" (prop onRemove?: () => void)
-│   ├── AudioPreview.tsx           # custom audio player + waveform (ใช้ 3 จุด: upload, transcript review, history detail/expanded)
-│   ├── ResultCard.tsx             # SOW/Manday/Modules/Assumptions + ExportMenu + ReliabilityBadge (mobile=cards, desktop=table)
-│   ├── ExportMenu.tsx             # dropdown รวม Copy/Download/Print — ใช้ React Portal กัน overflow clip
-│   └── Bilingual.tsx              # แสดงข้อความ 2 ภาษา (หลัก + รองตัวเล็ก)
-├── contexts/
-│   ├── AuthProvider.tsx           # wrap next-auth/react SessionProvider (ต้อง client component)
-│   ├── ThemeContext.tsx           # dark/light (อ่าน initial จาก DOM class ที่ inline script ตั้งไว้)
-│   ├── LanguageContext.tsx        # TH/EN — persist ภาษาเลือกลง localStorage (reload ไม่ reset)
-│   └── ToastContext.tsx           # toast + container อยู่ในตัว provider
-├── types/
-│   ├── history.ts                 # HistoryItem interface — shared ระหว่าง history/page.tsx และ history/[id]/page.tsx
-│   └── next-auth.d.ts             # module augmentation — เพิ่ม session.user.id
-└── lib/
-    ├── prisma.ts                  # singleton
-    ├── auth.ts                    # authOptions (NextAuth) — CredentialsProvider + bcrypt compare + JWT callbacks
-    ├── whisper.ts                 # Groq Whisper helper (lazy singleton)
-    ├── analyzer.ts                # SYSTEM_PROMPT, buildUserPrompt, tryParseJSON — types เท่านั้น ไม่มี Groq instance
-    ├── reliability.ts             # คำนวณ confidence score (pure function)
-    ├── rateLimit.ts               # in-memory sliding window
-    ├── bilingual.ts               # pickText/plainText — เลือกภาษาหลัก/รอง
-    ├── download.ts                # downloadJson/Markdown/Csv + safeBaseName (UTF-8 BOM)
-    ├── print.ts                   # buildPrintHTML — HTML template สำหรับ history list print (ย้ายออกจาก page component)
-    ├── historyExport.ts           # buildItemJson/Markdown/Csv — shared ระหว่าง history/page.tsx และ history/[id]/page.tsx
-    └── i18n.ts                    # Translations interface + th/en objects
-prisma/schema.prisma               # model User (email+password), model Estimation (userId optional relation)
-```
 
 ## รูปแบบสถาปัตยกรรมที่สำคัญ
 

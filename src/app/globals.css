@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+  --page: #fafafa;
+  --paper: #ffffff;
+  --paper-muted: #f4f4f5;
+  --ink: #18181b;
+  --muted: #71717a;
+  --line: #e4e4e7;
+  --line-strong: #a1a1aa;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef2ff;
+  --shadow-sm: 0 1px 2px 0 rgb(24 24 27 / 0.04);
+  --shadow-md: 0 2px 8px -2px rgb(24 24 27 / 0.08), 0 1px 2px 0 rgb(24 24 27 / 0.04);
+  --shadow-lg: 0 12px 32px -8px rgb(24 24 27 / 0.12), 0 2px 6px -1px rgb(24 24 27 / 0.05);
+}
+
+.dark {
+  color-scheme: dark;
+  --page: #09090b;
+  --paper: #18181b;
+  --paper-muted: #27272a;
+  --ink: #fafafa;
+  --muted: #a1a1aa;
+  --line: #303032;
+  --line-strong: #52525b;
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-soft: #1e1b4b;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 2px 8px -2px rgb(0 0 0 / 0.5), 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.55), 0 2px 6px -1px rgb(0 0 0 / 0.4);
+}
+
 @layer base {
   /* Font rendering */
   html {
@@ -13,13 +47,15 @@
   /* Thai characters have stacked vowels/tone marks — need generous line height */
   body {
     line-height: 1.75;
+    background: var(--page);
+    color: var(--ink);
   }
 
-  /* Headings: tighter tracking, heavier weight */
+  /* Headings: tighter tracking, heavier weight — confident, editorial-tech scale */
   h1, h2, h3, h4, h5, h6 {
     line-height: 1.4;
-    letter-spacing: -0.01em;
-    font-weight: 600;
+    letter-spacing: -0.025em;
+    font-weight: 700;
   }
 
   /* Body text: comfortable reading */
@@ -31,6 +67,81 @@
   button, label, input, select, textarea {
     line-height: 1.5;
   }
+}
+
+@layer components {
+  .ui-panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .ui-panel-muted {
+    background: var(--paper-muted);
+    border: 1px solid var(--line);
+    border-radius: 0.625rem;
+  }
+
+  .ui-field {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .ui-field:focus {
+    border-color: var(--accent);
+    outline: 3px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    outline-offset: 0;
+  }
+
+  .ui-button-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--accent);
+    border-radius: 0.5rem;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .ui-button-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .ui-button-primary:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
+
+  .ui-button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 0.5rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .ui-button-secondary:hover { background: var(--paper-muted); border-color: var(--muted); }
+
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .text-balance { text-wrap: balance; }
 }
 
 /* ── Print styles ──────────────────────────────────── */
@@ -63,15 +174,17 @@
     background: white !important;
   }
 
-  /* Manday banner keeps its blue */
+  /* Manday summary stays document-like on paper. */
   .print-banner {
-    background: #2563eb !important;
-    color: white !important;
-    border-radius: 12px !important;
+    background: white !important;
+    color: #18181b !important;
+    border: 1px solid #e4e4e7 !important;
+    border-left: 4px solid #4f46e5 !important;
+    border-radius: 6px !important;
     break-inside: avoid;
   }
 
-  .print-banner * { color: white !important; }
+  .print-banner * { color: #18181b !important; }
 
   /* Tables */
   table { border-collapse: collapse; width: 100%; }
@@ -123,11 +236,11 @@
   .pop-in { animation: none !important; }
 }
 
-/* Smooth dark mode transitions — excludes transform/opacity to avoid breaking animations */
+/* Keep theme changes calm and quick without making every interaction feel animated. */
 *,
 *::before,
 *::after {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-  transition-duration: 200ms;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, transform;
+  transition-duration: 120ms;
   transition-timing-function: ease;
 }

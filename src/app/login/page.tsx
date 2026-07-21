@@ -77,28 +77,28 @@ function LoginForm() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 max-w-sm w-full mx-auto px-4 py-12 sm:py-20">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{c.title}</h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">{c.subtitle}</p>
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-12 sm:py-16">
+        <div className="mb-7 border-b border-[var(--line)] pb-5">
+          <h1 className="text-3xl font-semibold tracking-[-0.025em] text-[var(--ink)]">{c.title}</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">{c.subtitle}</p>
         </div>
 
         {/* Seeded test account — reviewers can try the app without registering */}
-        <div className="mb-5 rounded-2xl border border-dashed border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-900/10 p-4">
+        <div className="mb-5 border-l-2 border-[var(--accent)] bg-[var(--accent-soft)] p-4">
           <div className="flex items-center gap-2 mb-2">
-            <svg className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4 flex-shrink-0 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">{c.testAccountTitle}</span>
+            <span className="text-xs font-semibold text-[var(--ink)]">{c.testAccountTitle}</span>
           </div>
-          <div className="text-xs text-gray-600 dark:text-slate-400 space-y-0.5 font-mono">
+          <div className="text-xs text-[var(--muted)] space-y-0.5 font-mono">
             <p>{DEMO_EMAIL}</p>
             <p>{DEMO_PASSWORD}</p>
           </div>
           <button
             type="button"
             onClick={() => { setEmail(DEMO_EMAIL); setPassword(DEMO_PASSWORD); }}
-            className="mt-2.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+            className="mt-2.5 text-xs font-semibold text-[var(--accent)] hover:underline"
           >
             {c.testAccountFill}
           </button>
@@ -106,10 +106,10 @@ function LoginForm() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 space-y-4"
+          className="ui-panel p-5 sm:p-6 space-y-4"
         >
           <div>
-            <label htmlFor="email" className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
+            <label htmlFor="email" className="block text-xs font-medium text-[var(--muted)] mb-1.5">
               {c.emailLabel}
             </label>
             <input
@@ -119,7 +119,7 @@ function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              className="ui-field px-3.5 py-2.5 text-sm"
             />
           </div>
           <PasswordInput
@@ -139,15 +139,15 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white disabled:text-gray-400 dark:disabled:text-slate-500 font-semibold py-3 px-6 rounded-xl text-sm"
+            className="ui-button-primary w-full px-6 py-3 text-sm disabled:cursor-not-allowed disabled:border-[var(--line)] disabled:bg-[var(--paper-muted)] disabled:text-[var(--muted)]"
           >
             {loading ? c.submitting : c.submit}
           </button>
         </form>
 
-        <p className="mt-5 text-center text-sm text-gray-500 dark:text-slate-400">
+        <p className="mt-5 text-center text-sm text-[var(--muted)]">
           {c.noAccount}{' '}
-          <Link href="/register" className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
+          <Link href="/register" className="font-medium text-[var(--accent)] hover:underline">
             {c.registerLink}
           </Link>
         </p>

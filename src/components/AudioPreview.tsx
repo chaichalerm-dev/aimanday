@@ -101,7 +101,7 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
   if (!url) return null;
 
   return (
-    <div className={`rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700/50 p-4 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
+    <div className={`ui-panel-muted p-4 ${disabled ? 'pointer-events-none opacity-60' : ''}`}>
       <audio
         ref={audioRef}
         src={url}
@@ -115,15 +115,15 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
 
       {/* File info */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
-          <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[3px] border border-[var(--line)] bg-[var(--paper)]">
+          <svg className="h-3.5 w-3.5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
           </svg>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 truncate">{file.name}</p>
-          <p className="text-xs text-gray-400 dark:text-slate-500">
+          <p className="truncate text-xs font-semibold text-[var(--ink)]">{file.name}</p>
+          <p className="text-xs text-[var(--muted)]">
             {formatSize(file.size)}{duration > 0 ? ` · ${formatTime(duration)}` : ''}
           </p>
         </div>
@@ -134,7 +134,7 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
         {/* Play / Pause */}
         <button
           onClick={togglePlay}
-          className="w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 flex items-center justify-center flex-shrink-0 shadow-sm"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[4px] bg-[var(--ink)] hover:bg-[var(--accent)]"
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
@@ -164,10 +164,10 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
                   key={i}
                   className={`flex-1 rounded-full transition-colors ${
                     isPast
-                      ? 'bg-blue-500 dark:bg-blue-400'
+                      ? 'bg-[var(--accent)]'
                       : isCurrent
-                      ? 'bg-blue-400 dark:bg-blue-300'
-                      : 'bg-gray-300 dark:bg-zinc-600'
+                      ? 'bg-[var(--accent)]'
+                      : 'bg-[var(--line-strong)]'
                   } ${isPlaying && isCurrent ? 'animate-pulse' : ''}`}
                   style={{
                     height: `${height}%`,
@@ -179,7 +179,7 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
           </div>
 
           {/* Time display */}
-          <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500 tabular-nums">
+          <div className="flex justify-between text-xs tabular-nums text-[var(--muted)]">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>

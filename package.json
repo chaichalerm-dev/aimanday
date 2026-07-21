@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3900",
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
-    "start": "next start",
+    "start": "next start -p 3900",
     "lint": "next lint",
     "prisma:generate": "dotenv -e .env.local -- prisma generate",
     "prisma:push": "dotenv -e .env.local -- prisma db push"

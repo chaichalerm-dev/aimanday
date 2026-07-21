@@ -129,56 +129,41 @@ export default function GuidePage() {
 
       <main className="flex-1">
         {/* ── Hero ─────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
-            <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-400/30 dark:bg-blue-600/20 rounded-full blur-3xl" />
-            <div className="absolute top-10 -right-24 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/15 rounded-full blur-3xl" />
-          </div>
-
-          <div className="max-w-3xl mx-auto px-4 pt-12 pb-8 sm:pt-16 sm:pb-10 text-center">
-            <span className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" style={{ transition: 'none' }} />
-              {c.badge}
-            </span>
-            <h1 className="mt-5 text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">{c.title}</h1>
-            <p className="mt-3 text-sm sm:text-base text-gray-500 dark:text-slate-400 max-w-xl mx-auto">{c.subtitle}</p>
+        <section className="border-b border-[var(--line)]">
+          <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
+            <p className="eyebrow">{c.badge}</p>
+            <h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] text-[var(--ink)] sm:text-5xl">{c.title}</h1>
+            <p className="mt-3 max-w-xl text-sm text-[var(--muted)] sm:text-base">{c.subtitle}</p>
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto px-4 pb-16 sm:pb-24">
+        <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-14">
           {/* Intro */}
-          <section className="max-w-3xl mx-auto -mt-2 mb-14 flex items-start gap-4 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 shadow-sm">
-            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <section className="mx-auto mb-16 flex max-w-4xl items-start gap-4 border-l-2 border-[var(--accent)] bg-[var(--paper)] p-5 sm:p-6">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-[var(--accent)]">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5">{c.introTitle}</h2>
-              <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">{c.intro}</p>
+              <h2 className="mb-1.5 text-sm font-semibold text-[var(--ink)]">{c.introTitle}</h2>
+              <p className="text-sm leading-relaxed text-[var(--muted)]">{c.intro}</p>
             </div>
           </section>
 
           {/* Steps */}
           <section className="mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{c.stepsTitle}</h2>
-              <p className="mt-2 text-sm sm:text-base text-gray-500 dark:text-slate-400">{c.stepsSubtitle}</p>
+            <div className="mb-8 border-b border-[var(--line-strong)] pb-5">
+              <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[var(--ink)] sm:text-3xl">{c.stepsTitle}</h2>
+              <p className="mt-2 text-sm text-[var(--muted)] sm:text-base">{c.stepsSubtitle}</p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid border-b border-[var(--line)] sm:grid-cols-2 lg:grid-cols-5">
               {c.steps.map((step, i) => (
-                <div key={step.num} className="relative">
-                  <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 h-full">
-                    <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white text-sm font-bold">
-                      {step.num}
-                    </span>
-                    <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">{step.title}</h3>
-                    <p className="mt-1.5 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{step.desc}</p>
-                  </div>
-                  {i < c.steps.length - 1 && (
-                    <div className="hidden lg:block absolute top-9 -right-2.5 w-5 h-px bg-gray-300 dark:bg-zinc-600" aria-hidden />
-                  )}
+                <div key={step.num} className={`border-t border-[var(--line)] p-5 ${i > 0 ? 'lg:border-l' : ''}`}>
+                  <span className="font-mono text-xs font-semibold text-[var(--accent)]">0{step.num}</span>
+                  <h3 className="mt-4 text-sm font-semibold text-[var(--ink)]">{step.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">{step.desc}</p>
                 </div>
               ))}
             </div>
@@ -186,20 +171,20 @@ export default function GuidePage() {
 
           {/* Features */}
           <section className="mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{c.featuresTitle}</h2>
-              <p className="mt-2 text-sm sm:text-base text-gray-500 dark:text-slate-400">{c.featuresSubtitle}</p>
+            <div className="mb-8 border-b border-[var(--line-strong)] pb-5">
+              <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[var(--ink)] sm:text-3xl">{c.featuresTitle}</h2>
+              <p className="mt-2 text-sm text-[var(--muted)] sm:text-base">{c.featuresSubtitle}</p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
               {c.features.map((f, i) => (
-                <div key={i} className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <div key={i} className="border-b border-[var(--line)] py-5">
+                  <div className="flex h-8 w-8 items-center justify-center text-[var(--accent)]">
                     <FeatureIcon index={i} />
                   </div>
-                  <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">{f.title}</h3>
-                  <p className="mt-1.5 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
-                  <p className="mt-3 text-xs text-blue-600 dark:text-blue-400 leading-relaxed flex items-start gap-1.5">
+                  <h3 className="mt-3 text-sm font-semibold text-[var(--ink)]">{f.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">{f.desc}</p>
+                  <p className="mt-3 flex items-start gap-1.5 text-xs leading-relaxed text-[var(--accent)]">
                     <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -211,12 +196,11 @@ export default function GuidePage() {
           </section>
 
           {/* Contact — LINE OA */}
-          <section className="max-w-3xl mx-auto relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 p-6 sm:p-8 text-white shadow-lg">
-            <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" aria-hidden />
+          <section className="ui-panel relative mx-auto max-w-4xl border-l-4 border-l-green-600 p-6 sm:p-8">
             <div className="relative flex flex-col sm:flex-row items-center gap-6">
               {/* LINE icon */}
-              <div className="flex-shrink-0 w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[4px] bg-green-600">
+                <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.072 9.436-6.971C23.176 14.393 24 12.458 24 10.314" />
                 </svg>
               </div>
@@ -224,21 +208,21 @@ export default function GuidePage() {
               {/* Text + button */}
               <div className="flex-1 text-center sm:text-left">
                 <h2 className="text-lg font-bold">{c.contactTitle}</h2>
-                <p className="mt-1 text-sm text-green-50 leading-relaxed">{c.contactDesc}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">{c.contactDesc}</p>
                 <div className="mt-4 flex flex-col sm:flex-row items-center gap-3">
                   <a
                     href={LINE_OA_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-white text-green-600 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-green-50 active:bg-green-100 w-full sm:w-auto justify-center"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-[4px] bg-green-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-800 sm:w-auto"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.072 9.436-6.971C23.176 14.393 24 12.458 24 10.314" />
                     </svg>
                     {c.lineButton}
                   </a>
-                  <span className="text-sm text-green-50">
-                    {c.lineNote} <span className="font-semibold text-white">{LINE_OA_ID}</span>
+                  <span className="text-sm text-[var(--muted)]">
+                    {c.lineNote} <span className="font-semibold text-[var(--ink)]">{LINE_OA_ID}</span>
                   </span>
                 </div>
               </div>
@@ -249,7 +233,7 @@ export default function GuidePage() {
           <div className="mt-10 text-center">
             <Link
               href="/app"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3.5 rounded-xl text-sm shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-transform"
+              className="ui-button-primary px-6 py-3.5 text-sm"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />

@@ -8,6 +8,7 @@ import { downloadJson, downloadMarkdown, downloadCsv } from '@/lib/download';
 import { plainText } from '@/lib/bilingual';
 import { ExportMenu } from '@/components/ExportMenu';
 import { Bilingual } from '@/components/Bilingual';
+import { LogoMark } from '@/components/LogoMark';
 import type { EstimationResult, Module } from '@/lib/analyzer';
 import type { Translations } from '@/lib/i18n';
 
@@ -47,7 +48,7 @@ function ReliabilityBadge({
       </button>
 
       {showTooltip && (
-        <div className="absolute right-0 top-full mt-2 z-10 w-56 bg-slate-900 border border-slate-700 rounded-xl p-3 shadow-xl text-xs text-slate-300 space-y-1.5">
+        <div className="absolute right-0 top-full z-10 mt-2 w-56 rounded-[6px] border border-stone-700 bg-stone-900 p-3 text-xs text-stone-300 shadow-lg space-y-1.5">
           <p className="font-semibold text-white mb-2">{t.reliabilityLabel}</p>
           <div className="flex justify-between">
             <span className="text-slate-400">{t.reliabilityAssumptions}</span>
@@ -161,12 +162,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
       {/* Print header — hidden on screen, visible only when printing */}
       <div className="hidden print:block mb-6 pb-5 border-b border-gray-200">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
+          <LogoMark className="h-8 w-8" />
           <div>
             <h1 className="text-lg font-bold text-gray-900">AI Manday Estimator</h1>
             <p className="text-sm text-gray-500">{t.printReportTitle}</p>
@@ -196,28 +192,28 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
       )}
 
       {/* Manday Banner */}
-      <div className="print-banner bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-2xl p-5 sm:p-6 text-white shadow-lg">
+      <div className="print-banner ui-panel border-l-4 border-l-[var(--accent)] p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-xs font-semibold text-blue-200 uppercase tracking-widest">{t.totalManday}</p>
+          <p className="eyebrow">{t.totalManday}</p>
           {/* Reliability Badge */}
           <ReliabilityBadge reliability={reliability} t={t} />
         </div>
         <div className="flex items-end gap-2 mt-2 flex-wrap">
-          <span className="text-4xl sm:text-5xl font-bold tabular-nums">{manday_estimate.min}</span>
-          <span className="text-2xl text-blue-300 mb-1">–</span>
-          <span className="text-4xl sm:text-5xl font-bold tabular-nums">{manday_estimate.max}</span>
-          <span className="text-base sm:text-lg text-blue-200 mb-1.5 ml-1">{t.mandays}</span>
+          <span className="text-4xl font-semibold tabular-nums tracking-[-0.04em] text-[var(--ink)] sm:text-5xl">{manday_estimate.min}</span>
+          <span className="mb-1 text-2xl text-[var(--line-strong)]">–</span>
+          <span className="text-4xl font-semibold tabular-nums tracking-[-0.04em] text-[var(--ink)] sm:text-5xl">{manday_estimate.max}</span>
+          <span className="mb-1.5 ml-1 text-base text-[var(--muted)] sm:text-lg">{t.mandays}</span>
         </div>
-        <p className="mt-3 text-xs text-blue-200">
+        <p className="mt-3 text-xs text-[var(--muted)]">
           {t.basedOn} {modules.length} {t.moduleWord} &bull; {t.sumOfModules}:{' '}
-          <span className="font-semibold text-white">{totalMandays}</span>
+          <span className="font-semibold text-[var(--ink)]">{totalMandays}</span>
         </p>
       </div>
 
       {/* Scope of Work */}
-      <div className="print-card bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 shadow-sm">
+      <div className="print-card ui-panel p-5 sm:p-6">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-700 dark:text-green-400 text-xs font-bold flex-shrink-0">
+          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center border-r border-[var(--line)] pr-2 text-xs font-bold text-[var(--accent)]">
             {sow.length}
           </span>
           {t.scopeOfWork}
@@ -225,8 +221,8 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
         <ul className="space-y-2.5">
           {sow.map((item, i: number) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mt-0.5">
-                <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center">
+                <svg className="h-3 w-3 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </span>
@@ -237,10 +233,10 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
       </div>
 
       {/* Modules Breakdown */}
-      <div className="print-card bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm overflow-hidden">
+      <div className="print-card ui-panel overflow-hidden">
         <div className="px-5 sm:px-6 py-4 border-b border-gray-100 dark:border-zinc-700 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t.modulesBreakdown}</h3>
-          <span className="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-zinc-700 px-2 py-0.5 rounded-full">
+          <span className="font-mono text-xs text-[var(--muted)]">
             {modules.length} {t.moduleWord}
           </span>
         </div>
@@ -250,7 +246,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
             <div key={i} className="px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <Bilingual value={module.name} className="font-semibold text-gray-900 dark:text-white text-sm" />
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 flex-shrink-0">
+                <span className="flex-shrink-0 font-mono text-xs font-semibold text-[var(--accent)]">
                   {module.manday} {lang === 'th' ? 'วัน' : 'd'}
                 </span>
               </div>
@@ -262,7 +258,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
           {/* Mobile total */}
           <div className="px-5 py-3.5 flex items-center justify-between bg-gray-50 dark:bg-zinc-700/50">
             <span className="text-sm font-semibold text-gray-900 dark:text-white">{t.total}</span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 dark:bg-blue-500 text-white">
+            <span className="font-mono text-xs font-semibold text-[var(--accent)]">
               {totalMandays} {lang === 'th' ? 'วัน' : 'd'}
             </span>
           </div>
@@ -288,7 +284,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
                     <Bilingual value={module.description} />
                   </td>
                   <td className="px-5 sm:px-6 py-3.5 text-right align-top">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300">
+                    <span className="font-mono text-xs font-semibold text-[var(--accent)]">
                       {module.manday}
                     </span>
                   </td>
@@ -299,7 +295,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
               <tr>
                 <td colSpan={2} className="px-5 sm:px-6 py-3 text-sm font-semibold text-gray-900 dark:text-white">{t.total}</td>
                 <td className="px-5 sm:px-6 py-3 text-right">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 dark:bg-blue-500 text-white">{totalMandays}</span>
+                  <span className="font-mono text-xs font-semibold text-[var(--accent)]">{totalMandays}</span>
                 </td>
               </tr>
             </tfoot>
@@ -309,7 +305,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
 
       {/* Assumptions */}
       {assumptions.length > 0 && (
-        <div className="print-assumptions bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-700/50 p-5 sm:p-6">
+        <div className="print-assumptions border border-amber-300 border-l-4 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/20 sm:p-6">
           <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-400 mb-4 flex items-center gap-2">
             <svg className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -319,7 +315,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
           <ul className="space-y-2.5">
             {assumptions.map((assumption, i: number) => (
               <li key={i} className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-200 dark:bg-amber-800/50 flex items-center justify-center mt-0.5 text-amber-700 dark:text-amber-400 text-xs font-bold">
+                <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-xs font-bold text-amber-700 dark:text-amber-400">
                   {i + 1}
                 </span>
                 <Bilingual value={assumption} className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed" subClassName="text-xs text-amber-600/70 dark:text-amber-500/70 mt-0.5 font-normal" />

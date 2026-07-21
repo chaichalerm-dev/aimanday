@@ -6,213 +6,103 @@ import { Footer } from '@/components/Footer';
 import { useLang } from '@/contexts/LanguageContext';
 
 interface Step {
-  num: number;
   title: string;
   desc: string;
 }
 
-interface Feature {
-  icon: React.ReactNode;
+interface Principle {
   title: string;
   desc: string;
 }
-
-interface Stat {
-  value: string;
-  label: string;
-}
-
-// Deterministic decorative waveform — reuses the same .wave-bar keyframes as the app's idle state
-const HERO_WAVE_HEIGHTS = [30, 55, 40, 70, 45, 85, 50, 65, 35, 75, 48, 60, 90, 42, 68, 52, 78, 38, 58, 46];
-const HERO_WAVE_DURATIONS = [1.3, 1.6, 1.1, 1.8, 1.4, 1.2, 1.7, 1.5, 1.9, 1.3, 1.6, 1.1, 1.4, 1.8, 1.2, 1.7, 1.5, 1.9, 1.3, 1.6];
-const HERO_WAVE_DELAYS = [0, 0.2, 0.4, 0.1, 0.35, 0.15, 0.3, 0.05, 0.25, 0.45, 0.1, 0.4, 0.2, 0.3, 0.05, 0.35, 0.15, 0.25, 0.4, 0.1];
 
 const content = {
   th: {
-    heroBadge: 'ขับเคลื่อนด้วย Groq Whisper + GPT OSS 120B',
-    heroTitleLine1: 'จากไฟล์เสียง Requirement',
-    heroTitleLine2: 'สู่ Manday ที่พร้อมเสนอราคา',
+    eyebrow: 'Project estimation workspace',
+    heroTitle: 'เปลี่ยนบทสนทนาเรื่องงาน ให้เป็นขอบเขตที่ประเมินราคาได้',
     heroSubtitle:
-      'อัปโหลดไฟล์เสียงที่ลูกค้าพูดความต้องการ ให้ AI ถอดเสียง วิเคราะห์ขอบเขตงาน แล้วประมาณการวันทำงานแยกรายโมดูลให้อัตโนมัติ — เสร็จในไม่กี่นาที',
-    ctaPrimary: 'เริ่มประเมินฟรี',
-    ctaSecondary: 'ดูวิธีใช้งาน',
-    mockTitle: 'ตัวอย่างผลลัพธ์',
-    mockModules: [
-      { name: 'ระบบสมาชิก & Login', manday: 5 },
-      { name: 'หน้าตะกร้าสินค้า', manday: 8 },
-      { name: 'ระบบชำระเงิน', manday: 6 },
+      'นำไฟล์เสียงหรือ Requirement ที่มีอยู่เข้ามา ตรวจข้อความให้เรียบร้อย แล้วรับ SOW พร้อม Manday แยกรายโมดูลในที่เดียว',
+    ctaPrimary: 'เริ่มประเมินงาน',
+    ctaSecondary: 'อ่านวิธีใช้งาน',
+    sampleLabel: 'ESTIMATE / 024',
+    sampleTitle: 'ระบบร้านค้าออนไลน์',
+    sampleSource: 'สรุปจาก Requirement meeting · 18 นาที',
+    sampleStatus: 'พร้อมตรวจสอบ',
+    sampleTotal: 'ช่วงเวลาประเมิน',
+    sampleUnit: 'Mandays',
+    sampleModules: [
+      { name: 'บัญชีผู้ใช้', days: '4–6' },
+      { name: 'แคตตาล็อกและตะกร้า', days: '7–9' },
+      { name: 'ชำระเงินและคำสั่งซื้อ', days: '6–8' },
     ],
-    mockTotal: 'รวมประมาณการ',
-    mockReliability: 'ความเชื่อมั่นสูง',
-    stats: [
-      { value: '3', label: 'ขั้นตอนง่ายๆ' },
-      { value: '< 1 นาที', label: 'ถอดเสียงอัตโนมัติ' },
-      { value: 'TH / EN', label: 'รองรับสองภาษา' },
-      { value: 'Real-time', label: 'ดูผล AI แบบ Streaming' },
-    ] as Stat[],
-    howTitle: 'ใช้งานง่ายใน 4 ขั้นตอน',
-    howSubtitle: 'ไม่ต้องพิมพ์ Requirement เอง แค่พูดแล้วอัปโหลด',
+    sampleNote: 'ตัวเลขเป็นช่วงเพื่อสะท้อนความไม่แน่นอนของ Requirement',
+    facts: [
+      ['INPUT', 'ไฟล์เสียง หรือข้อความ'],
+      ['REVIEW', 'แก้ Transcript ก่อนวิเคราะห์'],
+      ['OUTPUT', 'SOW, Modules และ Manday'],
+    ],
+    workflowEyebrow: 'A practical workflow',
+    workflowTitle: 'ทำงานตามลำดับที่ทีมประเมินจริง',
+    workflowSubtitle: 'แต่ละขั้นแยกจากกันชัดเจน คุณยังเป็นคนตัดสินใจก่อนส่งต่อเสมอ',
     steps: [
-      { num: 1, title: 'อัปโหลดไฟล์เสียง', desc: 'ลากไฟล์ .mp3 / .wav / .m4a มาวาง หรือคลิกเพื่อเลือก ระบบเริ่มถอดเสียงให้ทันที' },
-      { num: 2, title: 'ตรวจสอบข้อความ', desc: 'แก้ไข transcript ให้ถูกต้อง พร้อมฟังเสียงต้นฉบับซ้ำได้ทุกจุด' },
-      { num: 3, title: 'วิเคราะห์ด้วย AI', desc: 'กดวิเคราะห์แล้วดูผลลัพธ์ค่อยๆ ปรากฏแบบ real-time' },
-      { num: 4, title: 'รับ SOW + Manday', desc: 'ได้ขอบเขตงาน ตารางโมดูล และคะแนนความน่าเชื่อถือ พร้อมส่งออกทันที' },
+      { title: 'นำ Requirement เข้า', desc: 'อัปโหลด MP3, WAV, M4A หรือวางข้อความที่เตรียมไว้แล้ว' },
+      { title: 'อ่านและแก้ Transcript', desc: 'ฟังเสียงต้นฉบับซ้ำ พร้อมแก้คำศัพท์หรือรายละเอียดที่ถอดผิด' },
+      { title: 'สร้าง Estimate', desc: 'ระบบจัดขอบเขต แยกโมดูล และประเมินช่วง Manday จากข้อมูลที่ตรวจแล้ว' },
+      { title: 'ตรวจและส่งต่อ', desc: 'ดูสมมติฐาน คะแนนความน่าเชื่อถือ และส่งออกเป็นไฟล์ที่ทีมใช้ต่อได้' },
     ] as Step[],
-    featuresTitle: 'ครบทุกสิ่งที่ทีมประเมินงานต้องการ',
-    featuresSubtitle: 'ออกแบบมาให้ใช้งานจริงได้ทันที ไม่ใช่แค่ demo',
-    features: [
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-          </svg>
-        ),
-        title: 'ถอดเสียงอัตโนมัติ',
-        desc: 'แปลงไฟล์เสียงเป็นข้อความด้วย Groq Whisper ทันทีที่เลือกไฟล์ ไม่ต้องกดปุ่มเพิ่ม',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        ),
-        title: 'วิเคราะห์แบบ Streaming',
-        desc: 'เห็นผล AI ค่อยๆ พิมพ์ออกมาแบบ real-time ไม่ต้องรอหน้าจอค้าง',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-        title: 'คะแนนความน่าเชื่อถือ',
-        desc: 'คำนวณจากสมมติฐาน ช่วง range และความละเอียด รู้ทันทีว่าควรเชื่อผลแค่ไหน',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-          </svg>
-        ),
-        title: 'รองรับสองภาษา',
-        desc: 'เนื้อหาจากเสียงถูกจัดเก็บทั้งไทยและอังกฤษ สลับดูได้ทันทีไม่ต้องวิเคราะห์ซ้ำ',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-        title: 'ประวัติ + วิเคราะห์ซ้ำ',
-        desc: 'เก็บทุกการประเมิน ค้นหาได้ แก้ transcript แล้ววิเคราะห์ใหม่โดยไม่ต้องอัดเสียงซ้ำ',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 5.25v13.5A2.25 2.25 0 004.5 21h15a2.25 2.25 0 002.25-2.25V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-          </svg>
-        ),
-        title: 'ส่งออกหลายรูปแบบ',
-        desc: 'คัดลอก/ดาวน์โหลดเป็น JSON, Markdown, CSV หรือพิมพ์เป็น PDF ได้ทันที',
-      },
-    ] as Feature[],
-    finalCtaTitle: 'พร้อมประเมินโปรเจกต์ถัดไปหรือยัง?',
-    finalCtaSubtitle: 'ไม่ต้องสมัครสมาชิก ไม่มีค่าใช้จ่าย เริ่มได้ทันที',
-    finalCtaButton: 'เริ่มใช้งานเลย',
-    poweredBy: 'Powered by Groq Whisper & GPT OSS 120B',
+    principlesEyebrow: 'Built for review',
+    principlesTitle: 'ช่วยจัดงาน ไม่แย่งการตัดสินใจ',
+    principles: [
+      { title: 'ตรวจที่มาได้', desc: 'เก็บ Transcript คู่กับผลประเมิน เพื่อย้อนดูได้ว่าตัวเลขมาจาก Requirement ใด' },
+      { title: 'เห็นความไม่แน่นอน', desc: 'แสดงช่วง Manday สมมติฐาน และคะแนนความน่าเชื่อถืออย่างตรงไปตรงมา' },
+      { title: 'พร้อมเข้ากระบวนการทีม', desc: 'ค้นประวัติ วิเคราะห์ซ้ำ และส่งออก JSON, Markdown, CSV หรือ PDF ได้' },
+    ] as Principle[],
+    closingTitle: 'มี Requirement ที่ต้องตีขอบเขตอยู่หรือเปล่า?',
+    closingDesc: 'เริ่มจากไฟล์ที่มี แล้วค่อยปรับรายละเอียดก่อนนำตัวเลขไปใช้จริง',
+    closingButton: 'เปิดโต๊ะประเมินงาน',
   },
   en: {
-    heroBadge: 'Powered by Groq Whisper + GPT OSS 120B',
-    heroTitleLine1: 'From a requirement recording',
-    heroTitleLine2: 'to a quotable manday estimate',
+    eyebrow: 'Project estimation workspace',
+    heroTitle: 'Turn a project conversation into a scope you can estimate.',
     heroSubtitle:
-      'Upload the audio where your client explains what they need — AI transcribes it, scopes the work, and estimates mandays per module automatically. Done in minutes.',
-    ctaPrimary: 'Start Estimating Free',
-    ctaSecondary: 'See How It Works',
-    mockTitle: 'Sample Result',
-    mockModules: [
-      { name: 'Auth & Login', manday: 5 },
-      { name: 'Shopping Cart', manday: 8 },
-      { name: 'Payment System', manday: 6 },
+      'Bring in an audio file or a written requirement, review the transcript, then prepare a module-by-module SOW and manday range in one place.',
+    ctaPrimary: 'Start an estimate',
+    ctaSecondary: 'Read the guide',
+    sampleLabel: 'ESTIMATE / 024',
+    sampleTitle: 'Online storefront',
+    sampleSource: 'Prepared from an 18-minute requirement meeting',
+    sampleStatus: 'Ready for review',
+    sampleTotal: 'Estimated range',
+    sampleUnit: 'Mandays',
+    sampleModules: [
+      { name: 'Customer accounts', days: '4–6' },
+      { name: 'Catalogue and cart', days: '7–9' },
+      { name: 'Payments and orders', days: '6–8' },
     ],
-    mockTotal: 'Total estimate',
-    mockReliability: 'High Confidence',
-    stats: [
-      { value: '3', label: 'simple steps' },
-      { value: '< 1 min', label: 'auto transcription' },
-      { value: 'TH / EN', label: 'bilingual support' },
-      { value: 'Real-time', label: 'streaming AI output' },
-    ] as Stat[],
-    howTitle: 'Get started in 4 steps',
-    howSubtitle: "No need to type out requirements — just speak and upload",
+    sampleNote: 'Ranges are used to make requirement uncertainty visible.',
+    facts: [
+      ['INPUT', 'Audio file or written brief'],
+      ['REVIEW', 'Edit the transcript first'],
+      ['OUTPUT', 'SOW, modules and mandays'],
+    ],
+    workflowEyebrow: 'A practical workflow',
+    workflowTitle: 'Follow the way estimation work actually happens.',
+    workflowSubtitle: 'Each stage is separate and reviewable. You remain the decision-maker before anything moves on.',
     steps: [
-      { num: 1, title: 'Upload audio', desc: 'Drop a .mp3 / .wav / .m4a file or click to browse. Transcription starts instantly.' },
-      { num: 2, title: 'Review transcript', desc: 'Fix any STT errors while replaying the original audio at any point.' },
-      { num: 3, title: 'Analyze with AI', desc: 'Hit analyze and watch the result stream in, live, in real time.' },
-      { num: 4, title: 'Get SOW + mandays', desc: 'Receive scope of work, module breakdown, and a reliability score — ready to export.' },
+      { title: 'Bring in the requirement', desc: 'Upload MP3, WAV or M4A, or paste a brief you already have.' },
+      { title: 'Read and edit the transcript', desc: 'Replay the source audio while correcting terminology and missing details.' },
+      { title: 'Prepare the estimate', desc: 'Structure the scope, split it into modules and calculate a manday range.' },
+      { title: 'Review and hand off', desc: 'Check assumptions and reliability, then export in a format your team already uses.' },
     ] as Step[],
-    featuresTitle: 'Everything your estimation workflow needs',
-    featuresSubtitle: 'Built to be used for real work, not just a demo',
-    features: [
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-          </svg>
-        ),
-        title: 'Auto transcription',
-        desc: 'Audio is converted to text with Groq Whisper the moment you pick a file — no extra clicks.',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        ),
-        title: 'Streaming analysis',
-        desc: 'Watch the AI output type itself out live — no blank-screen waiting.',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-        title: 'Reliability score',
-        desc: 'Calculated from assumptions, range spread, and detail — know how much to trust the result.',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-          </svg>
-        ),
-        title: 'Bilingual by default',
-        desc: 'Audio content is stored in both Thai and English — switch instantly without re-analyzing.',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-        title: 'History + re-analyze',
-        desc: 'Every estimate is saved and searchable. Edit an old transcript and re-run without re-recording.',
-      },
-      {
-        icon: (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 5.25v13.5A2.25 2.25 0 004.5 21h15a2.25 2.25 0 002.25-2.25V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-          </svg>
-        ),
-        title: 'Export anywhere',
-        desc: 'Copy or download as JSON, Markdown, CSV, or print straight to PDF.',
-      },
-    ] as Feature[],
-    finalCtaTitle: 'Ready to estimate your next project?',
-    finalCtaSubtitle: 'No sign-up, no cost — start right away',
-    finalCtaButton: 'Get Started',
-    poweredBy: 'Powered by Groq Whisper & GPT OSS 120B',
+    principlesEyebrow: 'Built for review',
+    principlesTitle: 'Structure the work without replacing judgment.',
+    principles: [
+      { title: 'Traceable source', desc: 'Keep the transcript beside the estimate so every number can be traced to a requirement.' },
+      { title: 'Visible uncertainty', desc: 'Show ranges, assumptions and reliability instead of presenting false precision.' },
+      { title: 'Fits team workflows', desc: 'Search history, re-analyze, and export JSON, Markdown, CSV or PDF.' },
+    ] as Principle[],
+    closingTitle: 'Have a requirement that needs scoping?',
+    closingDesc: 'Start with what you have, then refine the details before using the numbers.',
+    closingButton: 'Open the estimation desk',
   },
 };
 
@@ -221,199 +111,118 @@ export default function LandingPage() {
   const c = content[lang];
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <Header />
 
       <main className="flex-1">
-        {/* ── Hero ─────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden">
-          {/* Decorative gradient blobs */}
-          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
-            <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-400/30 dark:bg-blue-600/20 rounded-full blur-3xl" />
-            <div className="absolute top-10 -right-24 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/15 rounded-full blur-3xl" />
-          </div>
-
-          <div className="max-w-6xl mx-auto px-4 pt-12 pb-16 sm:pt-20 sm:pb-24 grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: copy */}
-            <div className="text-center lg:text-left">
-              <span className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" style={{ transition: 'none' }} />
-                {c.heroBadge}
-              </span>
-
-              <h1 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-snug sm:leading-[1.3]">
-                {c.heroTitleLine1}
-                <br />
-                <span className="text-blue-600 dark:text-blue-400">{c.heroTitleLine2}</span>
+        <section className="border-b border-[var(--line)]">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 lg:py-24">
+            <div>
+              <p className="eyebrow">{c.eyebrow}</p>
+              <h1 className="mt-5 max-w-2xl text-balance text-4xl font-semibold leading-[1.22] tracking-[-0.035em] text-[var(--ink)] sm:text-5xl lg:text-[3.45rem]">
+                {c.heroTitle}
               </h1>
-
-              <p className="mt-5 text-base sm:text-lg text-gray-500 dark:text-slate-400 max-w-xl mx-auto lg:mx-0">
+              <p className="mt-6 max-w-xl text-base leading-8 text-[var(--muted)] sm:text-lg">
                 {c.heroSubtitle}
               </p>
-
-              <div className="mt-8 flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
-                <Link
-                  href="/app"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3.5 rounded-xl text-sm shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-transform"
-                >
-                  <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link href="/app" className="ui-button-primary px-5 py-3 text-sm">
                   {c.ctaPrimary}
+                  <span aria-hidden>→</span>
                 </Link>
-                <Link
-                  href="/guide"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-700 dark:text-slate-300 font-semibold px-6 py-3.5 rounded-xl text-sm active:scale-[0.98] transition-transform"
-                >
+                <Link href="/guide" className="ui-button-secondary px-5 py-3 text-sm">
                   {c.ctaSecondary}
                 </Link>
               </div>
-
-              {/* Decorative waveform */}
-              <div className="mt-10 flex items-end justify-center lg:justify-start gap-0.5 h-10 opacity-[0.28] dark:opacity-[0.18] pointer-events-none" aria-hidden>
-                {HERO_WAVE_HEIGHTS.map((h, i) => (
-                  <div
-                    key={i}
-                    className="wave-bar w-1 rounded-full bg-blue-500 dark:bg-blue-400"
-                    style={{
-                      height: `${h}%`,
-                      transformOrigin: '50% 100%',
-                      transition: 'none',
-                      animationDuration: `${HERO_WAVE_DURATIONS[i]}s`,
-                      animationDelay: `${HERO_WAVE_DELAYS[i]}s`,
-                    }}
-                  />
-                ))}
-              </div>
             </div>
 
-            {/* Right: mock result card */}
-            <div className="relative mx-auto w-full max-w-sm lg:max-w-none" aria-hidden>
-              <div className="relative bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 rotate-1 hover:rotate-0 transition-transform duration-300">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
-                    {c.mockTitle}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ transition: 'none' }} />
-                    {c.mockReliability}
-                  </span>
+            <div className="ui-panel overflow-hidden" aria-label={c.sampleTitle}>
+              <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] bg-[var(--paper-muted)] px-5 py-4 sm:px-6">
+                <div>
+                  <p className="font-mono text-[10px] font-semibold tracking-[0.12em] text-[var(--muted)]">{c.sampleLabel}</p>
+                  <h2 className="mt-1 text-base font-semibold text-[var(--ink)]">{c.sampleTitle}</h2>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">{c.sampleSource}</p>
+                </div>
+                <span className="mt-0.5 whitespace-nowrap border-l-2 border-emerald-600 pl-2 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                  {c.sampleStatus}
+                </span>
+              </div>
+
+              <div className="px-5 py-6 sm:px-6">
+                <p className="text-xs font-medium text-[var(--muted)]">{c.sampleTotal}</p>
+                <div className="mt-1 flex items-end gap-3 border-b border-[var(--line)] pb-6">
+                  <span className="text-5xl font-semibold tracking-[-0.05em] text-[var(--ink)]">17–23</span>
+                  <span className="pb-1.5 text-sm text-[var(--muted)]">{c.sampleUnit}</span>
                 </div>
 
-                <div className="space-y-2.5">
-                  {c.mockModules.map((m, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-zinc-700/60"
-                    >
-                      <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{m.name}</span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 flex-shrink-0">
-                        {m.manday} {lang === 'th' ? 'วัน' : 'd'}
-                      </span>
+                <div className="divide-y divide-[var(--line)]">
+                  {c.sampleModules.map((module, index) => (
+                    <div key={module.name} className="grid grid-cols-[2rem_1fr_auto] items-center gap-3 py-3.5 text-sm">
+                      <span className="font-mono text-[10px] text-[var(--muted)]">0{index + 1}</span>
+                      <span className="font-medium text-[var(--ink)]">{module.name}</span>
+                      <span className="font-mono text-xs text-[var(--accent)]">{module.days}</span>
                     </div>
                   ))}
                 </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-zinc-700 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{c.mockTotal}</span>
-                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {c.mockModules.reduce((s, m) => s + m.manday, 0)} {lang === 'th' ? 'วัน' : 'days'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Floating mini badge */}
-              <div className="absolute -bottom-4 -left-4 sm:-left-8 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 px-3.5 py-2.5 flex items-center gap-2 -rotate-3">
-                <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-gray-700 dark:text-slate-300">AI Manday</span>
+                <p className="border-t border-[var(--line)] pt-4 text-xs leading-5 text-[var(--muted)]">{c.sampleNote}</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Stats strip ──────────────────────────────────────── */}
-        <section className="border-y border-gray-200 dark:border-zinc-700 bg-white/60 dark:bg-zinc-800/40">
-          <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-2 sm:grid-cols-4 gap-6">
-            {c.stats.map((s, i) => (
-              <div key={i} className="text-center">
-                <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">{s.value}</p>
-                <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-slate-400">{s.label}</p>
+        <section className="border-b border-[var(--line)] bg-[var(--paper)]">
+          <div className="mx-auto grid max-w-6xl sm:grid-cols-3">
+            {c.facts.map(([label, value], index) => (
+              <div key={label} className={`px-4 py-5 sm:px-6 ${index > 0 ? 'border-t border-[var(--line)] sm:border-l sm:border-t-0' : ''}`}>
+                <p className="font-mono text-[10px] tracking-[0.14em] text-[var(--accent)]">{label}</p>
+                <p className="mt-1 text-sm font-medium text-[var(--ink)]">{value}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── How it works ─────────────────────────────────────── */}
-        <section className="max-w-6xl mx-auto px-4 py-16 sm:py-24">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{c.howTitle}</h2>
-            <p className="mt-2 text-sm sm:text-base text-gray-500 dark:text-slate-400">{c.howSubtitle}</p>
+        <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+          <div>
+            <p className="eyebrow">{c.workflowEyebrow}</p>
+            <h2 className="mt-4 max-w-md text-balance text-3xl font-semibold tracking-[-0.025em] text-[var(--ink)] sm:text-4xl">{c.workflowTitle}</h2>
+            <p className="mt-4 max-w-md text-sm leading-7 text-[var(--muted)]">{c.workflowSubtitle}</p>
           </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {c.steps.map((s, i) => (
-              <div key={s.num} className="relative">
-                <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 h-full">
-                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white text-sm font-bold">
-                    {s.num}
-                  </span>
-                  <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">{s.title}</h3>
-                  <p className="mt-1.5 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{s.desc}</p>
-                </div>
-                {/* Connector line (desktop only, not after last) */}
-                {i < c.steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-9 -right-2.5 w-5 h-px bg-gray-300 dark:bg-zinc-600" aria-hidden />
-                )}
-              </div>
+          <ol className="border-t border-[var(--line-strong)]">
+            {c.steps.map((step, index) => (
+              <li key={step.title} className="grid grid-cols-[2.5rem_1fr] gap-4 border-b border-[var(--line)] py-5 sm:grid-cols-[3rem_12rem_1fr] sm:gap-5">
+                <span className="font-mono text-xs text-[var(--accent)]">0{index + 1}</span>
+                <h3 className="text-sm font-semibold text-[var(--ink)]">{step.title}</h3>
+                <p className="col-start-2 text-sm leading-6 text-[var(--muted)] sm:col-start-3">{step.desc}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
-        {/* ── Features ─────────────────────────────────────────── */}
-        <section className="bg-white/60 dark:bg-zinc-800/40 border-y border-gray-200 dark:border-zinc-700">
-          <div className="max-w-6xl mx-auto px-4 py-16 sm:py-24">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{c.featuresTitle}</h2>
-              <p className="mt-2 text-sm sm:text-base text-gray-500 dark:text-slate-400">{c.featuresSubtitle}</p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {c.features.map((f, i) => (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                    {f.icon}
-                  </div>
-                  <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">{f.title}</h3>
-                  <p className="mt-1.5 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
-                </div>
+        <section className="border-y border-[var(--line)] bg-[var(--paper)]">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+            <p className="eyebrow">{c.principlesEyebrow}</p>
+            <h2 className="mt-4 max-w-2xl text-balance text-3xl font-semibold tracking-[-0.025em] text-[var(--ink)] sm:text-4xl">{c.principlesTitle}</h2>
+            <div className="mt-10 grid border-y border-[var(--line-strong)] sm:grid-cols-3">
+              {c.principles.map((principle, index) => (
+                <article key={principle.title} className={`py-6 sm:px-6 ${index > 0 ? 'border-t border-[var(--line)] sm:border-l sm:border-t-0' : ''} ${index === 0 ? 'sm:pl-0' : ''}`}>
+                  <p className="font-mono text-[10px] text-[var(--accent)]">0{index + 1}</p>
+                  <h3 className="mt-3 text-base font-semibold text-[var(--ink)]">{principle.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{principle.desc}</p>
+                </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Final CTA ────────────────────────────────────────── */}
-        <section className="max-w-6xl mx-auto px-4 py-16 sm:py-24">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 px-6 sm:px-12 py-12 sm:py-16 text-center">
-            <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" aria-hidden />
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">{c.finalCtaTitle}</h2>
-            <p className="mt-2 text-sm sm:text-base text-blue-100">{c.finalCtaSubtitle}</p>
-            <Link
-              href="/app"
-              className="mt-7 inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-700 font-semibold px-6 py-3.5 rounded-xl text-sm shadow-lg active:scale-[0.98] transition-transform"
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              {c.finalCtaButton}
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="grid items-center gap-8 border-l-4 border-[var(--accent)] bg-[var(--ink)] px-6 py-8 text-[var(--page)] sm:px-10 sm:py-10 lg:grid-cols-[1fr_auto]">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">{c.closingTitle}</h2>
+              <p className="mt-2 text-sm opacity-70">{c.closingDesc}</p>
+            </div>
+            <Link href="/app" className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]">
+              {c.closingButton}<span aria-hidden>→</span>
             </Link>
-            <p className="mt-5 text-xs text-blue-200">{c.poweredBy}</p>
           </div>
         </section>
       </main>

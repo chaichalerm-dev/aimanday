@@ -208,10 +208,10 @@ export default function HistoryPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-12">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         {/* Page header */}
-        <div className="mb-6">
-          <Link href="/app" className="text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 flex items-center gap-1 text-sm mb-2 w-fit">
+        <div className="mb-7 border-b border-[var(--line)] pb-6">
+          <Link href="/app" className="mb-3 flex w-fit items-center gap-1 text-xs font-medium text-[var(--muted)] hover:text-[var(--ink)]">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -219,11 +219,11 @@ export default function HistoryPage() {
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{t.historyTitle}</h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t.historySubtitle}</p>
+              <h1 className="text-3xl font-semibold tracking-[-0.025em] text-[var(--ink)] sm:text-4xl">{t.historyTitle}</h1>
+              <p className="mt-1 text-sm text-[var(--muted)]">{t.historySubtitle}</p>
             </div>
             {items.length > 0 && (
-              <span className="text-xs text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-zinc-700 px-3 py-1.5 rounded-full">
+              <span className="font-mono text-xs text-[var(--muted)]">
                 {items.length} {t.items}
               </span>
             )}
@@ -241,7 +241,7 @@ export default function HistoryPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t.searchPlaceholder}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              className="ui-field py-2.5 pl-10 pr-10 text-sm placeholder:text-[var(--muted)]"
             />
             {search && (
               <button
@@ -268,14 +268,14 @@ export default function HistoryPage() {
         {/* Empty state — no items at all */}
         {!loading && items.length === 0 && (
           <div className="text-center py-20">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[4px] border border-[var(--line)] bg-[var(--paper-muted)]">
               <svg className="w-8 h-8 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <p className="text-base font-semibold text-gray-700 dark:text-slate-300">{t.historyEmpty}</p>
             <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">{t.historyEmptyDesc}</p>
-            <Link href="/app" className="mt-5 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm">
+            <Link href="/app" className="ui-button-primary mt-5 px-5 py-2.5 text-sm">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -287,7 +287,7 @@ export default function HistoryPage() {
         {/* No search results */}
         {!loading && items.length > 0 && filteredItems.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-14 h-14 bg-gray-100 dark:bg-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-[4px] border border-[var(--line)] bg-[var(--paper-muted)]">
               <svg className="w-7 h-7 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -296,7 +296,7 @@ export default function HistoryPage() {
             <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">{t.searchNoResultsDesc}</p>
             <button
               onClick={() => setSearch('')}
-              className="mt-4 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+              className="mt-4 text-xs font-medium text-[var(--accent)] hover:underline"
             >
               {t.searchClear}
             </button>
@@ -337,23 +337,23 @@ export default function HistoryPage() {
                 return (
                   <div
                     key={item.id}
-                    className={`bg-white dark:bg-zinc-800 rounded-2xl border shadow-sm overflow-hidden ${
-                      isDeleting ? 'opacity-40 pointer-events-none' : 'border-gray-200 dark:border-zinc-700'
+                    className={`ui-panel overflow-hidden ${
+                      isDeleting ? 'pointer-events-none opacity-40' : ''
                     }`}
                   >
                     <div className="p-5 sm:p-6">
                       {/* Header row */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[4px] border border-[var(--line)] bg-[var(--paper-muted)]">
+                            <svg className="h-4 w-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                             </svg>
                           </div>
                           <div className="min-w-0">
                             <Link
                               href={`/history/${item.id}`}
-                              className="group/name inline-flex items-center gap-1 font-semibold text-gray-900 dark:text-white text-sm hover:text-blue-600 dark:hover:text-blue-400 max-w-full"
+                              className="group/name inline-flex max-w-full items-center gap-1 text-sm font-semibold text-[var(--ink)] hover:text-[var(--accent)]"
                             >
                               <span className="truncate underline-offset-2 group-hover/name:underline">
                                 {highlightName(item.audioName)}
@@ -369,7 +369,7 @@ export default function HistoryPage() {
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="inline-flex items-center gap-1 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">
+                          <span className="inline-flex items-center gap-1 border-l-2 border-[var(--accent)] pl-2 font-mono text-xs font-bold text-[var(--ink)]">
                             {item.mandayMin}–{item.mandayMax}
                             <span className="font-normal opacity-80">{lang === 'th' ? 'วัน' : 'd'}</span>
                           </span>
@@ -420,7 +420,7 @@ export default function HistoryPage() {
                       <div className="mt-4 flex gap-2">
                         <button
                           onClick={() => toggleExpand(item.id)}
-                          className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-700"
+                          className="ui-button-secondary flex-1 py-2 text-xs"
                         >
                           {isOpen
                             ? <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>{t.hideDetail}</>
@@ -429,7 +429,7 @@ export default function HistoryPage() {
                         </button>
                         <button
                           onClick={() => handleReAnalyze(item)}
-                          className="flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          className="ui-button-primary px-4 py-2 text-xs"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -469,13 +469,13 @@ export default function HistoryPage() {
                               />
                               <button
                                 onClick={() => expandedAudioInputRef.current?.click()}
-                                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-dashed border-gray-200 dark:border-zinc-700 text-left hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-zinc-700 group"
+                                className="group flex w-full items-center gap-3 rounded-[6px] border border-dashed border-[var(--line-strong)] px-4 py-3 text-left hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
                               >
-                                <svg className="w-5 h-5 flex-shrink-0 text-gray-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-5 w-5 flex-shrink-0 text-[var(--muted)] group-hover:text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                                 </svg>
                                 <div className="min-w-0">
-                                  <span className="block text-sm text-gray-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                  <span className="block text-sm text-[var(--muted)] group-hover:text-[var(--accent)]">
                                     {t.selectAudioFile}
                                   </span>
                                   <span className="block text-xs text-gray-400 dark:text-slate-500 truncate mt-0.5">
@@ -507,24 +507,24 @@ export default function HistoryPage() {
                           <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.modulesBreakdown}</p>
 
                           {/* Mobile: card layout */}
-                          <div className="sm:hidden rounded-xl border border-gray-200 dark:border-zinc-700 divide-y divide-gray-100 dark:divide-slate-700 overflow-hidden">
+                          <div className="divide-y divide-[var(--line)] overflow-hidden rounded-[6px] border border-[var(--line)] sm:hidden">
                             {item.modules.map((m, i) => (
                               <div key={i} className="px-4 py-3">
                                 <div className="flex items-start justify-between gap-3">
                                   <Bilingual value={m.name} className="font-medium text-gray-900 dark:text-white text-sm" />
-                                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 flex-shrink-0">{m.manday} {lang === 'th' ? 'วัน' : 'd'}</span>
+                                  <span className="flex-shrink-0 font-mono text-xs font-semibold text-[var(--accent)]">{m.manday} {lang === 'th' ? 'วัน' : 'd'}</span>
                                 </div>
                                 <div className="mt-1"><Bilingual value={m.description} className="text-sm text-gray-600 dark:text-slate-400" /></div>
                               </div>
                             ))}
                             <div className="px-4 py-3 flex items-center justify-between bg-gray-50 dark:bg-zinc-700">
                               <span className="text-xs font-semibold text-gray-900 dark:text-white">{t.total}</span>
-                              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{totalMandays} {lang === 'th' ? 'วัน' : 'd'}</span>
+                              <span className="font-mono text-xs font-semibold text-[var(--accent)]">{totalMandays} {lang === 'th' ? 'วัน' : 'd'}</span>
                             </div>
                           </div>
 
                           {/* Desktop: table layout */}
-                          <div className="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
+                          <div className="hidden overflow-x-auto rounded-[6px] border border-[var(--line)] sm:block">
                             <table className="w-full text-sm">
                               <thead className="bg-gray-50 dark:bg-zinc-700">
                                 <tr>
@@ -539,7 +539,7 @@ export default function HistoryPage() {
                                     <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white align-top"><Bilingual value={m.name} className="whitespace-nowrap" /></td>
                                     <td className="px-4 py-2.5 text-gray-600 dark:text-slate-400 align-top"><Bilingual value={m.description} /></td>
                                     <td className="px-4 py-2.5 text-right align-top">
-                                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300">{m.manday}</span>
+                                      <span className="font-mono text-xs font-semibold text-[var(--accent)]">{m.manday}</span>
                                     </td>
                                   </tr>
                                 ))}
@@ -548,7 +548,7 @@ export default function HistoryPage() {
                                 <tr>
                                   <td colSpan={2} className="px-4 py-2.5 text-xs font-semibold text-gray-900 dark:text-white">{t.total}</td>
                                   <td className="px-4 py-2.5 text-right">
-                                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{totalMandays}</span>
+                                    <span className="font-mono text-xs font-semibold text-[var(--accent)]">{totalMandays}</span>
                                   </td>
                                 </tr>
                               </tfoot>
@@ -577,7 +577,7 @@ export default function HistoryPage() {
                             </svg>
                             {t.transcriptLabel}
                           </summary>
-                          <p className="mt-3 text-sm text-gray-600 dark:text-slate-400 leading-relaxed bg-gray-50 dark:bg-zinc-700 rounded-xl p-4">{item.transcript}</p>
+                          <p className="mt-3 rounded-[6px] border border-[var(--line)] bg-[var(--paper-muted)] p-4 text-sm leading-relaxed text-[var(--muted)]">{item.transcript}</p>
                         </details>
 
                         {/* Action toolbar */}
@@ -626,7 +626,7 @@ export default function HistoryPage() {
                         onClick={() => setPage(p)}
                         className={`w-8 h-8 text-xs font-semibold rounded-lg border ${
                           page === p
-                            ? 'bg-blue-600 border-blue-600 text-white'
+                            ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                             : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700'
                         }`}
                       >

@@ -101,18 +101,18 @@ export default function RegisterPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 max-w-sm w-full mx-auto px-4 py-12 sm:py-20">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{c.title}</h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">{c.subtitle}</p>
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-12 sm:py-16">
+        <div className="mb-7 border-b border-[var(--line)] pb-5">
+          <h1 className="text-3xl font-semibold tracking-[-0.025em] text-[var(--ink)]">{c.title}</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">{c.subtitle}</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 space-y-4"
+          className="ui-panel p-5 sm:p-6 space-y-4"
         >
           <div>
-            <label htmlFor="name" className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
+            <label htmlFor="name" className="block text-xs font-medium text-[var(--muted)] mb-1.5">
               {c.nameLabel}
             </label>
             <input
@@ -121,11 +121,11 @@ export default function RegisterPage() {
               autoComplete="name"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              className="ui-field px-3.5 py-2.5 text-sm"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
+            <label htmlFor="email" className="block text-xs font-medium text-[var(--muted)] mb-1.5">
               {c.emailLabel}
             </label>
             <input
@@ -135,7 +135,7 @@ export default function RegisterPage() {
               autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              className="ui-field px-3.5 py-2.5 text-sm"
             />
           </div>
           <PasswordInput
@@ -167,15 +167,15 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white disabled:text-gray-400 dark:disabled:text-slate-500 font-semibold py-3 px-6 rounded-xl text-sm"
+            className="ui-button-primary w-full px-6 py-3 text-sm disabled:cursor-not-allowed disabled:border-[var(--line)] disabled:bg-[var(--paper-muted)] disabled:text-[var(--muted)]"
           >
             {loading ? c.submitting : c.submit}
           </button>
         </form>
 
-        <p className="mt-5 text-center text-sm text-gray-500 dark:text-slate-400">
+        <p className="mt-5 text-center text-sm text-[var(--muted)]">
           {c.haveAccount}{' '}
-          <Link href="/login" className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
+          <Link href="/login" className="font-medium text-[var(--accent)] hover:underline">
             {c.loginLink}
           </Link>
         </p>

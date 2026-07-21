@@ -136,11 +136,11 @@ export default function HistoryDetailPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-12">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         {/* Back link */}
         <Link
           href="/history"
-          className="text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 flex items-center gap-1 text-sm mb-5 w-fit print:hidden"
+          className="mb-5 flex w-fit items-center gap-1 text-xs font-medium text-[var(--muted)] hover:text-[var(--ink)] print:hidden"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -162,14 +162,14 @@ export default function HistoryDetailPage() {
         {/* Not found */}
         {!loading && notFound && (
           <div className="text-center py-20">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[4px] border border-[var(--line)] bg-[var(--paper-muted)]">
               <svg className="w-8 h-8 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
               </svg>
             </div>
             <p className="text-base font-semibold text-gray-700 dark:text-slate-300">{t.detailNotFound}</p>
             <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">{t.detailNotFoundDesc}</p>
-            <Link href="/history" className="mt-5 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm">
+            <Link href="/history" className="ui-button-primary mt-5 px-5 py-2.5 text-sm">
               {t.backToHistory}
             </Link>
           </div>
@@ -179,17 +179,17 @@ export default function HistoryDetailPage() {
         {!loading && item && result && (
           <>
             {/* ── Page header: file info + actions ──────────────────── */}
-            <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 mb-5 print:hidden">
+            <div className="mb-5 flex flex-col gap-3 border-b border-[var(--line)] pb-5 sm:flex-row sm:items-start sm:gap-4 print:hidden">
               {/* Left: icon + filename + date */}
               <div className="flex items-start gap-3 min-w-0 flex-1">
-                <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="mt-0.5 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[4px] border border-[var(--line)] bg-[var(--paper-muted)]">
+                  <svg className="h-5 w-5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white truncate">{item.audioName}</h1>
+                  <h1 className="truncate text-2xl font-semibold tracking-[-0.02em] text-[var(--ink)]">{item.audioName}</h1>
                   <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                     {t.savedAt}{' '}
                     {new Date(item.createdAt).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', {
@@ -203,7 +203,7 @@ export default function HistoryDetailPage() {
               <div className="flex items-center gap-2 flex-shrink-0 sm:pt-0.5">
                 <button
                   onClick={handleReAnalyze}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  className="ui-button-primary px-3 py-1.5 text-xs"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -222,7 +222,7 @@ export default function HistoryDetailPage() {
             </div>
 
             {/* ── Audio player ─────────────────────────────────────── */}
-            <div className="mb-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 shadow-sm print:hidden">
+            <div className="ui-panel mb-5 p-5 print:hidden">
               <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                 {t.playAudio}
               </p>
@@ -250,13 +250,13 @@ export default function HistoryDetailPage() {
                   />
                   <button
                     onClick={() => audioInputRef.current?.click()}
-                    className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-dashed border-gray-200 dark:border-zinc-700 text-left hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-zinc-700 group"
+                    className="group flex w-full items-center gap-3 rounded-[6px] border border-dashed border-[var(--line-strong)] px-4 py-3 text-left hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
                   >
-                    <svg className="w-5 h-5 flex-shrink-0 text-gray-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5 flex-shrink-0 text-[var(--muted)] group-hover:text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                     </svg>
                     <div className="min-w-0">
-                      <span className="block text-sm text-gray-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      <span className="block text-sm text-[var(--muted)] group-hover:text-[var(--accent)]">
                         {t.selectAudioFile}
                       </span>
                       <span className="block text-xs text-gray-400 dark:text-slate-500 truncate mt-0.5">
@@ -272,7 +272,7 @@ export default function HistoryDetailPage() {
             <ResultCard result={result} hideToolbar />
 
             {/* ── Source transcript ────────────────────────────────── */}
-            <div className="mt-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 shadow-sm print:hidden">
+            <div className="ui-panel mt-5 p-5 sm:p-6 print:hidden">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{t.sourceTranscript}</h3>
               <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">{item.transcript}</p>
             </div>

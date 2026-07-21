@@ -5,9 +5,9 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { AuthProvider } from '@/contexts/AuthProvider';
-import { BottomNav } from '@/components/BottomNav';
+import { BottomNav, MobileNavSpacer } from '@/components/BottomNav';
 
-// Prompt: รองรับ Thai + Latin ในไฟล์เดียว, ทรงเรขาคณิตโค้งมน หน้าตาทันสมัยแบบ SaaS
+// Prompt keeps Thai and Latin metrics consistent across reports and forms.
 const prompt = Prompt({
   subsets: ['thai', 'latin'],
   weight: ['300', '400', '500', '600', '700'],
@@ -77,14 +77,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${prompt.variable} font-sans min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100`}
+        className={`${prompt.variable} font-sans min-h-screen antialiased`}
       >
         <AuthProvider>
           <ThemeProvider>
             <LanguageProvider>
               <ToastProvider>
-                {/* Bottom padding on mobile so content isn't hidden behind BottomNav */}
-                <div className="pb-16 md:pb-0">{children}</div>
+                <MobileNavSpacer>{children}</MobileNavSpacer>
                 <BottomNav />
               </ToastProvider>
             </LanguageProvider>

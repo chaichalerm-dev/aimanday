@@ -71,13 +71,13 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={[
-          'relative border-2 border-dashed rounded-xl text-center',
+          'relative rounded-[6px] border border-dashed text-left',
           // เลือกไฟล์แล้ว → strip กะทัดรัด (ชื่อ/ขนาดไฟล์แสดงใน AudioPreview ข้างใต้อยู่แล้ว)
-          selectedFile ? 'p-4' : 'p-8 sm:p-12',
+          selectedFile ? 'p-4' : 'p-6 sm:p-8',
           disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
           isDragging
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-            : 'border-gray-300 dark:border-zinc-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-zinc-700/50',
+            ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+            : 'border-[var(--line-strong)] bg-[var(--paper-muted)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]',
         ].join(' ')}
       >
         <input
@@ -90,16 +90,16 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
         />
 
         {selectedFile ? (
-          <div className="flex items-center justify-center gap-3 flex-wrap">
+          <div className="flex flex-wrap items-center gap-3">
             <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[4px] border ${
                 isDragging
-                  ? 'bg-blue-200 dark:bg-blue-700/50'
-                  : 'bg-blue-100 dark:bg-blue-900/40'
+                  ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                  : 'border-[var(--line)] bg-[var(--paper)]'
               }`}
             >
               <svg
-                className="w-4 h-4 text-blue-600 dark:text-blue-400"
+                className="h-4 w-4 text-[var(--accent)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -112,12 +112,12 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
                 />
               </svg>
             </div>
-            <span className="text-xs text-gray-500 dark:text-slate-400">{t.changeFile}</span>
+            <span className="text-xs text-[var(--muted)]">{t.changeFile}</span>
             {onRemove && !disabled && (
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); onRemove(); }}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="ml-auto inline-flex items-center gap-1 px-2 py-0.5 text-xs text-[var(--muted)] hover:text-red-600 dark:hover:text-red-400"
                 style={{ transition: 'color 150ms ease, background-color 150ms ease' }}
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,16 +128,16 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex items-center gap-4">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[4px] border ${
                 isDragging
-                  ? 'bg-blue-200 dark:bg-blue-700/50'
-                  : 'bg-blue-100 dark:bg-blue-900/40'
+                  ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                  : 'border-[var(--line)] bg-[var(--paper)]'
               }`}
             >
               <svg
-                className="w-7 h-7 text-blue-600 dark:text-blue-400"
+                className="h-5 w-5 text-[var(--accent)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -150,12 +150,12 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
                 />
               </svg>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-700 dark:text-slate-300">
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium text-[var(--ink)]">
                 {t.dropHere}{' '}
-                <span className="text-blue-600 dark:text-blue-400">{t.clickToBrowse}</span>
+                <span className="text-[var(--accent)] underline underline-offset-2">{t.clickToBrowse}</span>
               </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500">{t.supports}</p>
+              <p className="text-xs text-[var(--muted)]">{t.supports}</p>
             </div>
           </div>
         )}

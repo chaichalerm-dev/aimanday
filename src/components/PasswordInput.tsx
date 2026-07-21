@@ -38,7 +38,7 @@ export function PasswordInput({
 
   return (
     <div>
-      <label htmlFor={id} className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
+      <label htmlFor={id} className="block text-xs font-medium text-[var(--muted)] mb-1.5">
         {label}
       </label>
       <div className="relative">
@@ -50,14 +50,14 @@ export function PasswordInput({
           autoComplete={autoComplete}
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 px-3.5 py-2.5 pr-11 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+          className="ui-field px-3.5 py-2.5 pr-11 text-sm"
         />
         <button
           type="button"
           tabIndex={-1}
           onClick={() => setVisible(v => !v)}
           aria-label={visible ? 'Hide password' : 'Show password'}
-          className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
+          className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-[var(--muted)] hover:text-[var(--ink)]"
         >
           {visible ? (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,7 +74,7 @@ export function PasswordInput({
         </button>
       </div>
 
-      {hint && !showStrength && <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">{hint}</p>}
+      {hint && !showStrength && <p className="mt-1 text-xs text-[var(--muted)]">{hint}</p>}
 
       {showStrength && value && strength && strengthLabels && (
         <div className="mt-2">
@@ -83,7 +83,7 @@ export function PasswordInput({
               <div
                 key={i}
                 className={`h-1 flex-1 rounded-full ${
-                  i < ACTIVE_SEGMENTS[strength.level] ? BAR_COLOR[strength.level] : 'bg-gray-200 dark:bg-zinc-600'
+                  i < ACTIVE_SEGMENTS[strength.level] ? BAR_COLOR[strength.level] : 'bg-[var(--line-strong)]'
                 }`}
                 style={{ transition: 'none' }}
               />

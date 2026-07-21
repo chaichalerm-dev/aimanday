@@ -52,13 +52,18 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+// Marketing/auth pages aren't part of the app's mobile tab flow — no bottom bar there.
+const HIDDEN_PATHS = ['/', '/login', '/register'];
+
 export function BottomNav() {
   const pathname = usePathname();
   const { t } = useLang();
 
+  if (HIDDEN_PATHS.includes(pathname)) return null;
+
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-gray-200 dark:border-zinc-700 bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md print:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--line)] bg-[var(--paper)] md:hidden print:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-around">
@@ -68,12 +73,12 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className="relative flex flex-col items-center justify-center gap-1 flex-1 py-3 min-h-[56px] group"
+              className="group relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2.5"
             >
               {/* Active indicator bar */}
               <span
-                className={`absolute top-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full transition-all duration-200 ${
-                  active ? 'w-8 bg-blue-600 dark:bg-blue-400' : 'w-0 bg-transparent'
+                className={`absolute left-1/2 top-0 h-0.5 -translate-x-1/2 transition-all duration-200 ${
+                  active ? 'w-full bg-[var(--accent)]' : 'w-0 bg-transparent'
                 }`}
                 style={{ transition: 'width 200ms ease' }}
               />
@@ -82,8 +87,8 @@ export function BottomNav() {
               <span
                 className={`transition-colors ${
                   active
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-400 dark:text-slate-500 group-hover:text-gray-600 dark:group-hover:text-slate-300'
+                    ? 'text-[var(--accent)]'
+                    : 'text-[var(--muted)] group-hover:text-[var(--ink)]'
                 }`}
               >
                 {icon(active)}
@@ -93,8 +98,8 @@ export function BottomNav() {
               <span
                 className={`text-[11px] font-semibold leading-none transition-colors ${
                   active
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-400 dark:text-slate-500 group-hover:text-gray-600 dark:group-hover:text-slate-300'
+                    ? 'text-[var(--accent)]'
+                    : 'text-[var(--muted)] group-hover:text-[var(--ink)]'
                 }`}
               >
                 {t[labelKey]}
@@ -105,4 +110,13 @@ export function BottomNav() {
       </div>
     </nav>
   );
+}
+
+// Reserves the space BottomNav occupies on mobile — skipped on the same pages BottomNav hides on,
+// otherwise those pages get a blank gap at the bottom of the viewport.
+export function MobileNavSpacer({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const hasBottomNav = !HIDDEN_PATHS.includes(pathname);
+
+  return <div className={hasBottomNav ? 'pb-16 md:pb-0' : ''}>{children}</div>;
 }

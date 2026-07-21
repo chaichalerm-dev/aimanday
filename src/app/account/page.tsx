@@ -163,7 +163,7 @@ export default function AccountPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 max-w-md w-full mx-auto px-4 py-12 sm:py-16">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10 sm:px-6 sm:py-14">
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-3 text-gray-400 dark:text-slate-500">
             <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24" style={{ transition: 'none' }}>
@@ -175,17 +175,14 @@ export default function AccountPage() {
         ) : (
           <>
             {/* Profile hero */}
-            <div className="text-center mb-8">
-              <span className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" style={{ transition: 'none' }} />
-                {c.badge}
-              </span>
+            <div className="mb-8 border-b border-[var(--line)] pb-7 text-left">
+              <p className="eyebrow">{c.badge}</p>
 
-              <div className="mt-5 w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-600/20">
+              <div className="mt-5 flex h-14 w-14 items-center justify-center rounded-[4px] bg-[var(--ink)] text-xl font-bold text-[var(--page)]">
                 {initial}
               </div>
 
-              <h1 className="mt-4 text-xl font-bold text-gray-900 dark:text-white truncate">
+              <h1 className="mt-4 truncate text-2xl font-semibold tracking-[-0.02em] text-[var(--ink)]">
                 {name || email}
               </h1>
               <p className="text-sm text-gray-500 dark:text-slate-400 truncate">{email}</p>
@@ -195,16 +192,16 @@ export default function AccountPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex items-center gap-2 mb-5" role="tablist">
+            <div className="mb-5 flex items-center border-b border-[var(--line)]" role="tablist">
               <button
                 type="button"
                 role="tab"
                 aria-selected={tab === 'profile'}
                 onClick={() => setTab('profile')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 py-2.5 text-sm font-medium ${
                   tab === 'profile'
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700'
+                    ? 'border-[var(--accent)] text-[var(--ink)]'
+                    : 'border-transparent text-[var(--muted)] hover:text-[var(--ink)]'
                 }`}
               >
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -218,10 +215,10 @@ export default function AccountPage() {
                 role="tab"
                 aria-selected={tab === 'password'}
                 onClick={() => setTab('password')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 py-2.5 text-sm font-medium ${
                   tab === 'password'
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-zinc-700'
+                    ? 'border-[var(--accent)] text-[var(--ink)]'
+                    : 'border-transparent text-[var(--muted)] hover:text-[var(--ink)]'
                 }`}
               >
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -235,7 +232,7 @@ export default function AccountPage() {
             {tab === 'profile' ? (
               <form
                 onSubmit={handleSaveProfile}
-                className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 space-y-4"
+                className="ui-panel p-5 sm:p-6 space-y-4"
               >
                 <div>
                   <label htmlFor="name" className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
@@ -248,7 +245,7 @@ export default function AccountPage() {
                     autoComplete="name"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                    className="ui-field px-3.5 py-2.5 text-sm"
                   />
                 </div>
                 <div>
@@ -262,7 +259,7 @@ export default function AccountPage() {
                     autoComplete="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700 text-sm text-gray-800 dark:text-slate-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                    className="ui-field px-3.5 py-2.5 text-sm"
                   />
                 </div>
 
@@ -275,7 +272,7 @@ export default function AccountPage() {
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white disabled:text-gray-400 dark:disabled:text-slate-500 font-semibold py-3 px-6 rounded-xl text-sm"
+                  className="ui-button-primary w-full px-6 py-3 text-sm disabled:cursor-not-allowed disabled:border-[var(--line)] disabled:bg-[var(--paper-muted)] disabled:text-[var(--muted)]"
                 >
                   {savingProfile ? c.saving : c.saveProfile}
                 </button>
@@ -283,7 +280,7 @@ export default function AccountPage() {
             ) : (
               <form
                 onSubmit={handleChangePassword}
-                className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-5 sm:p-6 space-y-4"
+                className="ui-panel p-5 sm:p-6 space-y-4"
               >
                 <PasswordInput
                   label={c.currentPasswordLabel}
@@ -321,7 +318,7 @@ export default function AccountPage() {
                 <button
                   type="submit"
                   disabled={savingPassword}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white disabled:text-gray-400 dark:disabled:text-slate-500 font-semibold py-3 px-6 rounded-xl text-sm"
+                  className="ui-button-primary w-full px-6 py-3 text-sm disabled:cursor-not-allowed disabled:border-[var(--line)] disabled:bg-[var(--paper-muted)] disabled:text-[var(--muted)]"
                 >
                   {savingPassword ? c.changingPassword : c.savePassword}
                 </button>
