@@ -47,6 +47,7 @@ DATABASE_URL="mongodb+srv://...mongodb.net/aimanday?appName=Cluster0"
 
 ```
 src/
+├── middleware.ts                  # login gate (/history, /account) ผ่าน getToken() + CSP nonce ทุก request
 ├── app/
 │   ├── page.tsx                   # หน้าหลัก: upload → transcribe → edit → analyze (stream) → result
 │   ├── layout.tsx                 # providers (Theme/Lang/Toast) + BottomNav + spacer + inline theme script
@@ -133,6 +134,7 @@ prisma/schema.prisma               # model Estimation
   - Inputs/secondary: `zinc-700` (#3F3F46)
   - Borders: `zinc-700`
   - Streaming terminal (`bg-slate-950` ไม่มี dark: prefix) ยังคงดำสนิทตามต้องการ
+- ระวังสีที่ตั้งใจไว้สำหรับ dark mode แต่ไม่มี `dark:` prefix — เคยพลาดที่ `ReliabilityBadge` (`text-yellow-200` ตรงๆ ไม่มี dark: ทำให้โหมดสว่างอ่านไม่ออก) แก้แล้วด้วย pattern `bg-*-100 dark:bg-*-400/20` + `text-*-700 dark:text-*-200`
 
 ### Responsive / Mobile
 - **Header**: `fixed top-0` + spacer `h-14` (เลื่อนตามจอ); nav links ซ่อนบน mobile (`hidden md:flex`)
@@ -149,6 +151,8 @@ prisma/schema.prisma               # model Estimation
 ### Print/PDF
 - หน้าหลัก/detail: `window.print()` + CSS `@media print` + class `print-card`/`print-banner`/`print-assumptions` + force light mode
 - หน้า history list: `window.open()` สร้าง standalone HTML แล้ว auto-print — HTML template อยู่ใน `lib/print.ts` (`buildPrintHTML`) รวม bilingual ตัวเล็กด้วย
+- `buildPrintHTML` escape ทุกค่าจาก transcript/LLM ก่อนแทรกลง HTML string เสมอ (`escapeHtml()`) — HTML นี้ถูก `document.write()` ตรงเข้าหน้าต่างใหม่ ไม่ escape จะเป็น stored XSS ได้
+- ไม่มี `<script>` ฝังใน HTML ที่คืนจาก `buildPrintHTML` — สั่งพิมพ์จากฝั่ง caller แทนด้วย `win.onload = () => win.print()` (เพราะ CSP nonce-based บล็อก inline script ที่ไม่มี nonce และ popup รับ nonce ของหน้าแม่ไม่ได้)
 
 ### Shared types
 - `src/types/history.ts` export `HistoryItem` interface — ใช้ร่วมกันระหว่าง `history/page.tsx` และ `history/[id]/page.tsx` ป้องกัน drift
@@ -163,6 +167,13 @@ prisma/schema.prisma               # model Estimation
 ### Rate Limiting
 - `lib/rateLimit.ts` in-memory sliding window 10 req/min/IP ต่อ endpoint (upload + analyze)
 - **หมายเหตุ:** reset ทุก cold start บน serverless (Vercel) — production จริงควรใช้ Redis
+- `getClientIp()` อ่าน `x-real-ip` ก่อนเสมอ (Vercel เขียนทับให้เอง เชื่อถือได้) — ห้ามอ่าน `x-forwarded-for` ตัวแรกเป็นหลัก เพราะ client ปลอมค่านั้นได้เอง ทำให้ข้าม rate limit ไปเรื่อยๆ
+
+### Security (middleware + CSP)
+- `src/middleware.ts` ทำ 2 หน้าที่: (1) เช็ค login ด้วย `getToken()` (edge-compatible) สำหรับ `/history`, `/account` แล้ว redirect ไป `/login?callbackUrl=...` ถ้าไม่มี token (2) สุ่ม CSP nonce ใหม่ทุก request ใส่ header `Content-Security-Policy` (`script-src 'self' 'nonce-xxx' 'strict-dynamic'` ไม่มี `unsafe-inline`) ให้ทุก route รวม `/login` — ไม่ใช้ `next-auth/middleware`'s `withAuth` เพราะมันข้าม path ที่เป็น sign-in page ไม่รัน middleware เราเลย
+- `layout.tsx` อ่าน nonce จาก `headers().get('x-nonce')` ใส่ใน inline theme script — ทำให้ root layout เป็น dynamic render ทั้งแอป (ตั้งใจ ไม่ใช่บั๊ก)
+- `lib/print.ts`'s `buildPrintHTML` ต้อง escape ทุกค่าที่มาจาก transcript/LLM ก่อนแทรกลง HTML เสมอ (กัน stored XSS ผ่าน `document.write`)
+- `lib/historyExport.ts`'s `csvSafeCell()` กัน CSV formula injection (เซลล์ขึ้นต้น `=+-@` โดน escape)
 
 ### Idle Waveform Animation
 - `page.tsx` มี constants `WAVE_HEIGHTS`, `WAVE_DURATIONS`, `WAVE_DELAYS` (32 bars) นอก component
@@ -188,4 +199,6 @@ prisma/schema.prisma               # model Estimation
 
 source code อยู่บน GitHub แล้ว (Deliverable ส่งแล้ว)
 
-**สิ่งที่เหลือ:** deploy Vercel (optional)
+ผ่าน security hardening pass แล้ว (branch `redesign`): อัปเกรด Next.js ปิด CVE middleware bypass, แก้ stored XSS ในหน้าพิมพ์, กัน CSV formula injection, แก้ rate-limit IP spoofing, CSP เปลี่ยนเป็น nonce-based เลิกใช้ `unsafe-inline` — ดู section "Security (middleware + CSP)" ด้านบน
+
+**สิ่งที่เหลือ:** deploy Vercel (optional), ตรวจสอบว่าบัญชีทดสอบ `demo@example.com` ยัง login ได้จริงใน DB ปัจจุบัน (เจอ 401 ตอนทดสอบ security pass ล่าสุด)

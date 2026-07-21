@@ -96,11 +96,25 @@ parse JSON  →  แสดงผล real-time  →  บันทึก MongoDB (
 
 ---
 
+## ความปลอดภัย (Security)
+
+โปรเจกต์ผ่าน security hardening pass เพิ่มเติมนอกเหนือจาก requirement หลัก:
+
+- **Security headers ระดับ A+** (securityheaders.com) — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- **CSP แบบ nonce-based** — สุ่ม nonce ใหม่ทุก request ผ่าน `middleware.ts`, `script-src` ไม่มี `unsafe-inline` เลย
+- **Password hashing** ด้วย bcrypt (cost 10), session เป็น JWT ล้วนไม่ผูก DB
+- **IDOR protection** — ทุก query/delete ประวัติ filter ด้วย `userId` ของ session เสมอ (ไม่มีทางเห็น/ลบข้อมูลคนอื่นได้แม้เดา id ถูก)
+- **Input sanitization** — escape เนื้อหาจาก transcript/LLM ก่อนแทรกใน HTML (กัน XSS ในหน้าพิมพ์/PDF) และก่อน export CSV (กัน formula injection)
+- **Rate limiting** 10 req/min/IP ต่อ endpoint อ่าน IP จาก header ที่เชื่อถือได้ (`x-real-ip`) ไม่ใช่ header ที่ client ปลอมได้
+- Dependencies อัปเดตแก้ known CVE เป็นประจำ (`npm audit`)
+
+---
+
 ## โครงสร้างโปรเจกต์
 
 ```
 src/
-├── middleware.ts                  # next-auth middleware — บังคับ login เฉพาะ /history และ /account
+├── middleware.ts                  # login gate (/history, /account) ด้วย getToken() + สุ่ม CSP nonce ให้ทุก request
 ├── app/
 │   ├── page.tsx                   # Landing page (public) — hero/features/how-it-works
 │   ├── app/page.tsx               # เครื่องมือจริง (public): เลือกไฟล์เสียง/พิมพ์ข้อความ → transcribe/edit → analyze (stream) → result
@@ -232,7 +246,7 @@ npm install
 GROQ_API_KEY="gsk_xxxxxxxxxxxxxxxxxxxx"
 DATABASE_URL="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/aimanday?appName=Cluster0"
 NEXTAUTH_SECRET="random-string-here"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3900"
 ```
 
 > รับ `GROQ_API_KEY` ได้ฟรีที่ [console.groq.com](https://console.groq.com)
@@ -249,7 +263,7 @@ npm run prisma:push
 npm run dev
 ```
 
-เปิด `http://localhost:3000` — ทดลองใช้เครื่องมือได้ทันทีโดยไม่ต้อง login หรือกด "สมัครสมาชิก" เพื่อเริ่มเก็บประวัติของตัวเอง (หน้า login มีบัญชีทดสอบให้ autofill ได้เลย)
+เปิด `http://localhost:3900` — ทดลองใช้เครื่องมือได้ทันทีโดยไม่ต้อง login หรือกด "สมัครสมาชิก" เพื่อเริ่มเก็บประวัติของตัวเอง (หน้า login มีบัญชีทดสอบให้ autofill ได้เลย)
 
 ---
 
