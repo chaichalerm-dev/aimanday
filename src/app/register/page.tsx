@@ -12,7 +12,7 @@ import { useLang } from '@/contexts/LanguageContext';
 const content = {
   th: {
     title: 'สมัครสมาชิก',
-    subtitle: 'สร้างบัญชีเพื่อเริ่มเก็บประวัติการประเมินของคุณเอง',
+    subtitle: 'สร้างบัญชีเพื่อเก็บผลประเมินไว้ดูหรือแก้ไขภายหลัง',
     nameLabel: 'ชื่อ (ไม่บังคับ)',
     emailLabel: 'อีเมล',
     passwordLabel: 'รหัสผ่าน',
@@ -30,7 +30,7 @@ const content = {
   },
   en: {
     title: 'Sign Up',
-    subtitle: 'Create an account to start keeping your own estimation history',
+    subtitle: 'Create an account to save estimates and return to them later',
     nameLabel: 'Name (optional)',
     emailLabel: 'Email',
     passwordLabel: 'Password',

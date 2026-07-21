@@ -16,7 +16,7 @@ const DEMO_PASSWORD = 'Demo12345';
 const content = {
   th: {
     title: 'เข้าสู่ระบบ',
-    subtitle: 'เข้าสู่ระบบเพื่อดูประวัติการประเมินของคุณ',
+    subtitle: 'ดูผลประเมินที่เคยบันทึกไว้ หรือกลับมาทำงานเดิมต่อ',
     emailLabel: 'อีเมล',
     passwordLabel: 'รหัสผ่าน',
     submit: 'เข้าสู่ระบบ',
@@ -25,11 +25,11 @@ const content = {
     noAccount: 'ยังไม่มีบัญชี?',
     registerLink: 'สมัครสมาชิก',
     testAccountTitle: 'บัญชีสำหรับทดสอบ',
-    testAccountFill: 'กรอกให้อัตโนมัติ',
+    testAccountFill: 'ใส่ข้อมูลนี้ให้',
   },
   en: {
     title: 'Log In',
-    subtitle: 'Log in to see your own estimation history',
+    subtitle: 'View your saved estimates or continue earlier work',
     emailLabel: 'Email',
     passwordLabel: 'Password',
     submit: 'Log In',
@@ -38,7 +38,7 @@ const content = {
     noAccount: "Don't have an account?",
     registerLink: 'Sign up',
     testAccountTitle: 'Test Account',
-    testAccountFill: 'Autofill',
+    testAccountFill: 'Use this account',
   },
 };
 
