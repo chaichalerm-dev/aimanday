@@ -3,6 +3,19 @@ import type { Translations } from './i18n';
 import type { ReliabilityLevel } from './reliability';
 import type { HistoryItem } from '@/types/history';
 
+// item.audioName and the sow/modules/assumptions text ultimately come from the
+// user-editable transcript (and an LLM that can be prompt-injected into echoing
+// it back verbatim) — this HTML is written straight into a same-origin window via
+// document.write, so any unescaped value here is a stored XSS vector.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function buildPrintHTML(
   item: HistoryItem,
   t: Translations,
@@ -20,14 +33,18 @@ export function buildPrintHTML(
 
   const renderBilingual = (v: MaybeBilingual) => {
     const { primary, secondary } = pickText(v, lang);
-    return secondary ? `${primary}<span class="sub">${secondary}</span>` : primary;
+    const escapedPrimary = escapeHtml(primary);
+    return secondary
+      ? `${escapedPrimary}<span class="sub">${escapeHtml(secondary)}</span>`
+      : escapedPrimary;
   };
+  const safeAudioName = escapeHtml(item.audioName);
 
   return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
   <meta charset="UTF-8">
-  <title>AI Manday Estimator – ${item.audioName}</title>
+  <title>AI Manday Estimator – ${safeAudioName}</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -64,7 +81,7 @@ export function buildPrintHTML(
 <body>
 <div class="hdr">
   <div><h1>AI Manday Estimator</h1><div class="hdr-sub">${t.printReportTitle}</div></div>
-  <div class="hdr-right"><div>${item.audioName}</div><div>${t.printGeneratedOn} ${dateStr}</div></div>
+  <div class="hdr-right"><div>${safeAudioName}</div><div>${t.printGeneratedOn} ${dateStr}</div></div>
 </div>
 <div class="banner">
   <div class="banner-lbl">${t.totalManday}</div>
@@ -85,6 +102,5 @@ export function buildPrintHTML(
   </table>
 </div>
 ${item.assumptions.length > 0 ? `<div class="assump"><div class="sec-title">${t.assumptions}</div>${item.assumptions.map((a, i) => `<div class="assump-item"><span class="assump-num">${i + 1}</span><span>${renderBilingual(a)}</span></div>`).join('')}</div>` : ''}
-<script>window.onload=function(){window.print()}<\/script>
 </body></html>`;
 }

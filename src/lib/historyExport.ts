@@ -32,11 +32,19 @@ export function buildItemMarkdown(item: HistoryItem, t: Translations, lang: 'th'
   return lines.join('\n');
 }
 
+// Cell text ultimately comes from the user-editable transcript. A cell that opens
+// with =, +, -, @, tab, or CR is interpreted as a formula by Excel/Sheets when the
+// file is later opened — prefix with a straight quote to force it to plain text
+// (the well-known CSV/formula-injection mitigation).
+export function csvSafeCell(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
 export function buildItemCsv(item: HistoryItem, t: Translations, lang: 'th' | 'en'): string {
   const total = item.modules.reduce((s, m) => s + m.manday, 0);
   return [
     [t.colModule, t.colDescription, t.colMandays],
     ...item.modules.map(m => [plainText(m.name, lang), plainText(m.description, lang), String(m.manday)]),
     [t.total, '', String(total)],
-  ].map(row => row.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
+  ].map(row => row.map(c => `"${csvSafeCell(c).replace(/"/g, '""')}"`).join(',')).join('\n');
 }

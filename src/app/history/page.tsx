@@ -187,7 +187,14 @@ export default function HistoryPage() {
     const label = rel.level === 'high' ? t.reliabilityHigh : rel.level === 'medium' ? t.reliabilityMedium : t.reliabilityLow;
     const html = buildPrintHTML(item, t, lang, rel.score, rel.level, label);
     const win = window.open('', '_blank', 'width=900,height=700');
-    if (win) { win.document.write(html); win.document.close(); }
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      // Trigger print from here (the opener) rather than an inline <script> in the
+      // written HTML — an inline script there would need its own CSP nonce, which
+      // this same-origin-but-separate popup document has no way to receive.
+      win.onload = () => win.print();
+    }
   };
 
   const handleReAnalyze = (item: HistoryItem) => {

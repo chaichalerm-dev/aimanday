@@ -6,6 +6,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { calculateReliability, type ReliabilityScore } from '@/lib/reliability';
 import { downloadJson, downloadMarkdown, downloadCsv } from '@/lib/download';
 import { plainText } from '@/lib/bilingual';
+import { csvSafeCell } from '@/lib/historyExport';
 import { ExportMenu } from '@/components/ExportMenu';
 import { Bilingual } from '@/components/Bilingual';
 import { LogoMark } from '@/components/LogoMark';
@@ -112,7 +113,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
     const header = [t.colModule, t.colDescription, t.colMandays];
     const rows = modules.map((m: Module) => [plainText(m.name, lang), plainText(m.description, lang), String(m.manday)]);
     return [header, ...rows, [t.total, '', String(totalMandays)]]
-      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+      .map(row => row.map(cell => `"${csvSafeCell(cell).replace(/"/g, '""')}"`).join(','))
       .join('\n');
   };
 

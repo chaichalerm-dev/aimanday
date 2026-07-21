@@ -1,29 +1,7 @@
-const isDev = process.env.NODE_ENV === 'development';
-
-// Content-Security-Policy
-// - script-src ต้องมี 'unsafe-inline' เพราะมี inline theme script ใน layout.tsx
-//   และ Next.js เองก็ inject inline script ตอน hydration (ถ้าจะเข้มกว่านี้ต้องย้ายไป nonce ผ่าน middleware)
-// - 'unsafe-eval' + ws: จำเป็นเฉพาะ dev (webpack HMR)
-// - style-src/font-src allow Google Fonts เพราะหน้าต่าง print (window.open + document.write
-//   ใน lib/print.ts) สืบทอด CSP จากหน้าแม่และโหลดฟอนต์ Sarabun จาก CDN
-// - media-src blob: สำหรับ AudioPreview (URL.createObjectURL)
-const csp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: blob:",
-  "media-src 'self' blob:",
-  `connect-src 'self'${isDev ? ' ws:' : ''}`,
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  'upgrade-insecure-requests',
-].join('; ');
-
+// Content-Security-Policy is set per-request in src/middleware.ts instead of here —
+// it needs a fresh nonce on every response so script-src can drop 'unsafe-inline'
+// (next.config's headers() can only emit static, request-independent values).
 const securityHeaders = [
-  { key: 'Content-Security-Policy', value: csp },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },

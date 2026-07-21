@@ -120,6 +120,10 @@ export default function HistoryDetailPage() {
     if (win) {
       win.document.write(buildPrintHTML(item, t, lang, rel.score, rel.level, label));
       win.document.close();
+      // Trigger print from here (the opener) rather than an inline <script> in the
+      // written HTML — an inline script there would need its own CSP nonce, which
+      // this same-origin-but-separate popup document has no way to receive.
+      win.onload = () => win.print();
     }
   };
 

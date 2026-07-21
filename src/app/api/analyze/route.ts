@@ -9,6 +9,12 @@ import { checkRateLimit, rateLimitHeaders, getClientIp } from '@/lib/rateLimit';
 // Route handler is request-only; never prerender/evaluate at build time.
 export const dynamic = 'force-dynamic';
 
+// Guards direct API calls (bypassing the UI) from sending an oversized transcript
+// or filename — both are billed as LLM input tokens / stored verbatim in Mongo,
+// so an unbounded size is a cost-abuse / storage-bloat DoS vector.
+const MAX_TRANSCRIPT_LENGTH = 20_000;
+const MAX_AUDIO_NAME_LENGTH = 255;
+
 // Lazy singleton — avoid throwing at module import when GROQ_API_KEY is absent (e.g. build time).
 let groqClient: Groq | null = null;
 function getGroq(): Groq {
@@ -47,6 +53,18 @@ export async function POST(request: NextRequest) {
 
     if (!transcript || typeof transcript !== 'string' || transcript.trim().length === 0) {
       return NextResponse.json({ error: 'transcript is required' }, { status: 400, headers: rlHeaders });
+    }
+    if (transcript.length > MAX_TRANSCRIPT_LENGTH) {
+      return NextResponse.json(
+        { error: `transcript exceeds maximum length of ${MAX_TRANSCRIPT_LENGTH} characters` },
+        { status: 400, headers: rlHeaders },
+      );
+    }
+    if (typeof audioName !== 'string' || audioName.length > MAX_AUDIO_NAME_LENGTH) {
+      return NextResponse.json(
+        { error: `audioName exceeds maximum length of ${MAX_AUDIO_NAME_LENGTH} characters` },
+        { status: 400, headers: rlHeaders },
+      );
     }
 
     const encoder = new TextEncoder();
@@ -110,10 +128,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    // Log the real error server-side only — echoing error.message back to the
+    // client can leak internal details (Prisma/Groq exception text, etc).
     console.error('[analyze] Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Analysis failed' },
-      { status: 500, headers: rlHeaders },
-    );
+    return NextResponse.json({ error: 'Analysis failed' }, { status: 500, headers: rlHeaders });
   }
 }

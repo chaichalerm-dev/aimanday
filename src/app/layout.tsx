@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Prompt } from 'next/font/google';
+import { headers } from 'next/headers';
 import './globals.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -59,11 +60,23 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Set by src/middleware.ts on every request — required so this inline script is
+  // allowed to run under the nonce-based CSP (script-src has no 'unsafe-inline').
+  // Reading headers() here opts the whole app out of static rendering, since the
+  // nonce must be fresh per request.
+  const nonce = headers().get('x-nonce') ?? undefined;
+
   return (
     <html lang="th" suppressHydrationWarning>
       <head>
         {/* Apply saved theme before first paint to prevent flash */}
+        {/* suppressHydrationWarning: React deliberately omits `nonce` from its SSR
+            diff (so it can't be scraped from a saved copy of the HTML) — the raw
+            response still has the real value and the browser's CSP check reads
+            that, so this only silences a cosmetic, functionally-inert warning. */}
         <script
+          nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               try {

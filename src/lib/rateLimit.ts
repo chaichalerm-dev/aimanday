@@ -59,9 +59,14 @@ export function rateLimitHeaders(result: RateLimitResult): Record<string, string
 }
 
 export function getClientIp(request: Request): string {
+  // `x-forwarded-for`'s left-most entry is client-supplied and trivially spoofed
+  // (an attacker can send a fresh random value per request to dodge the rate
+  // limiter entirely). Prefer headers Vercel's edge sets itself from the real
+  // socket — `x-real-ip`, then `x-vercel-forwarded-for` — before ever trusting XFF.
   return (
-    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
     request.headers.get('x-real-ip') ??
+    request.headers.get('x-vercel-forwarded-for')?.split(',')[0].trim() ??
+    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
     '127.0.0.1'
   );
 }
