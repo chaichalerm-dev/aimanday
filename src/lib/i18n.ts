@@ -1,3 +1,4 @@
+// ชุด key ของข้อความในแอปทั้งหมด — เพิ่ม UI string ใหม่ต้องเพิ่ม field ที่นี่ก่อน แล้วเติมค่าทั้งใน th และ en ด้านล่าง
 export interface Translations {
   // Header nav
   homeNav: string;
@@ -130,6 +131,7 @@ export interface Translations {
   invalidFileType: string;
 }
 
+// ข้อความภาษาไทย (ค่าเริ่มต้นของแอป)
 export const th: Translations = {
   homeNav: 'หน้าหลัก',
   historyNav: 'ประวัติ',
@@ -241,6 +243,7 @@ export const th: Translations = {
   invalidFileType: 'รองรับเฉพาะไฟล์ .mp3, .wav และ .m4a',
 };
 
+// ข้อความภาษาอังกฤษ
 export const en: Translations = {
   homeNav: 'Home',
   historyNav: 'History',

@@ -7,6 +7,7 @@ interface AudioPreviewProps {
   disabled?: boolean;
 }
 
+// แปลงวินาที (number) เป็นข้อความรูปแบบ "นาที:วินาที" เช่น 75 → "1:15"
 function formatTime(s: number): string {
   if (!isFinite(s) || s < 0) return '0:00';
   const m = Math.floor(s / 60);
@@ -14,21 +15,26 @@ function formatTime(s: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
+// แปลงขนาดไฟล์ (bytes) เป็นข้อความอ่านง่าย — ต่ำกว่า 1MB โชว์เป็น KB ไม่งั้นโชว์เป็น MB
 function formatSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
 
 // Deterministic bar heights from filename — purely decorative waveform
+// รับ name (ชื่อไฟล์ ใช้เป็น seed) และ count (จำนวนแท่ง) คืนค่าอาเรย์ความสูง % ของแต่ละแท่ง
+// ไม่ได้อ่านคลื่นเสียงจริง — สุ่มเทียม (deterministic) จาก char code ของชื่อไฟล์ ให้ค่าเดิมทุกครั้งที่ไฟล์เดียวกัน
 function getWaveBars(name: string, count = 28): number[] {
   const bars: number[] = [];
   for (let i = 0; i < count; i++) {
+    // วนอ่าน char code ของชื่อไฟล์ทีละตัว (mod ความยาวชื่อ กันวิ่งเกินขอบเขต) คูณตำแหน่งแท่ง+7 แล้ว mod 100 เป็น "เมล็ดสุ่ม"
     const seed = (name.charCodeAt(i % name.length) * (i + 1) * 7) % 100;
-    bars.push(20 + (seed % 65));
+    bars.push(20 + (seed % 65)); // ความสูงอยู่ในช่วง 20-84% กันแท่งเตี้ยจนมองไม่เห็น
   }
   return bars;
 }
 
+// เครื่องเล่นเสียงขนาดเล็ก พร้อม waveform ตกแต่ง (ไม่ใช่คลื่นเสียงจริง) + ปุ่มเล่น/หยุด + seek แถบคลิกได้
 export function AudioPreview({ file, disabled }: AudioPreviewProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -44,6 +50,8 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const activeBar = Math.floor((progress / 100) * waveBars.length);
 
+  // เรียกถี่มากตอนเล่นเสียง (event timeupdate ของ <audio>) — เช็คก่อนว่าเลขวินาที/แท่ง active
+  // เปลี่ยนจริงไหมค่อย setState กันหน้า re-render บ่อยเกินจำเป็น (คล้าย throttle)
   const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -72,6 +80,8 @@ export function AudioPreview({ file, disabled }: AudioPreviewProps) {
     else audioRef.current.play();
   };
 
+  // คำนวณตำแหน่งที่คลิก/ลากบนแถบ waveform แล้วแปลงเป็นเวลาที่ต้อง seek ไป
+  // ratio = สัดส่วนระยะจากขอบซ้ายแถบ (0-1) clamp ไว้ไม่ให้หลุดขอบซ้าย/ขวา
   const seekTo = (e: React.MouseEvent<HTMLDivElement> | MouseEvent) => {
     if (!audioRef.current || !progressRef.current || !duration) return;
     const rect = progressRef.current.getBoundingClientRect();

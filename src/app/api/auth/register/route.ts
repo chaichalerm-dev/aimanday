@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// รับ POST { email, password, name? } → สร้างบัญชีผู้ใช้ใหม่ (hash password ด้วย bcrypt ก่อนเก็บ)
 export async function POST(request: NextRequest) {
   // Rate limit: 10 registration attempts per minute per IP
   const ip = getClientIp(request);

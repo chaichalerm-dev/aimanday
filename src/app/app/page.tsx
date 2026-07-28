@@ -38,6 +38,9 @@ const STEP_ORDER: Record<Step, number> = {
 };
 
 // Client-safe JSON parser (no server imports)
+// เหมือนกับ tryParseJSON ใน lib/analyzer.ts ทุกประการ แต่แยกไฟล์ไว้เพราะ client component
+// ห้าม import โมดูลฝั่ง server (analyzer.ts อยู่ในบันเดิลที่อาจถูกดึงเข้า server-only code)
+// รับ text (ข้อความดิบจาก stream) คืนค่า EstimationResult หรือ null ถ้า parse ไม่ผ่าน
 function parseEstimation(text: string): EstimationResult | null {
   try {
     const cleaned = text
@@ -63,6 +66,7 @@ function parseEstimation(text: string): EstimationResult | null {
 
 type InputMode = 'audio' | 'text';
 
+// หน้าเครื่องมือหลัก (/app) — คุมทั้ง flow: อัปโหลด/พิมพ์ → ถอดเสียง → แก้ transcript → วิเคราะห์ด้วย AI → แสดงผล
 export default function Home() {
   const { t } = useLang();
   const { showToast } = useToast();
@@ -127,6 +131,7 @@ export default function Home() {
 
   // Step 1: Upload audio → STT (รับไฟล์เป็น parameter — เรียกจาก event handler ทันทีที่เลือกไฟล์
   // ห้ามย้ายไป useEffect on file: StrictMode จะยิง /api/upload ซ้ำและเปลือง rate limit)
+  // รับ selected (File ที่ผู้ใช้เลือก) ส่งไป POST /api/upload แล้วเซ็ต editedTranscript จากผลลัพธ์
   const transcribeFile = async (selected: File) => {
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -152,6 +157,7 @@ export default function Home() {
     }
   };
 
+  // เรียกตอนผู้ใช้เลือกไฟล์ใหม่จาก UploadZone — reset state เก่าทั้งหมดแล้วเริ่มถอดเสียงทันที
   const handleFileSelect = (selected: File) => {
     setFile(selected);
     setPrefillAudioName('');
@@ -164,6 +170,7 @@ export default function Home() {
   };
 
   // Text mode: user types the requirement directly, skipping STT entirely
+  // ข้าม step 'transcribing' ไปตรง 'transcribed' เลย เพราะไม่มีไฟล์เสียงให้ถอด
   const handleTextModeContinue = () => {
     if (!editedTranscript.trim()) return;
     setManualEntry(true);
@@ -175,6 +182,8 @@ export default function Home() {
   };
 
   // Step 2: Stream transcript → LLM
+  // ส่ง transcript ไป POST /api/analyze แล้วอ่าน response ทีละ chunk ผ่าน ReadableStream reader
+  // ระหว่างอ่าน จะ throttle การอัปเดต state ~10 ครั้ง/วินาที กัน re-render ถี่เกินไป จนจบ stream ค่อย parse JSON
   const handleAnalyze = async () => {
     if (!editedTranscript.trim()) return;
     // warm chunk ของ ResultCard ระหว่างรอ LLM stream — ตอน done จะไม่มี loading flash
@@ -230,6 +239,7 @@ export default function Home() {
     }
   };
 
+  // ปุ่ม "ถอดเสียงใหม่" — ถ้ายังมีไฟล์อยู่ ถอดซ้ำทันที; ถ้าไม่มี (มาจาก reanalyze/manualEntry) กลับไป idle
   const handleRetranscribe = () => {
     setEditedTranscript('');
     setPrefillAudioName('');
@@ -244,6 +254,7 @@ export default function Home() {
     }
   };
 
+  // ปุ่ม "เริ่มใหม่" — ยกเลิก request ที่ค้างอยู่ (ถ้ามี) แล้วล้าง state ทั้งหมดกลับสู่จุดเริ่มต้น
   const handleReset = () => {
     abortRef.current?.abort();
     setFile(null);

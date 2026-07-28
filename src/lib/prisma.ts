@@ -1,3 +1,4 @@
+// Prisma client แบบ singleton — กัน hot-reload ตอน dev สร้าง connection ใหม่ซ้ำ ๆ จน MongoDB connection pool เต็ม
 import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };

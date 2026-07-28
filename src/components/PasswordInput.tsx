@@ -29,6 +29,7 @@ const TEXT_COLOR: Record<PasswordStrengthLevel, string> = {
 
 const ACTIVE_SEGMENTS: Record<PasswordStrengthLevel, number> = { weak: 1, medium: 2, strong: 3 };
 
+// ช่องกรอกรหัสผ่าน พร้อมปุ่มสลับ show/hide + แถบวัดความแข็งแรง (เปิดใช้ผ่าน prop showStrength)
 export function PasswordInput({
   label, value, onChange, autoComplete, required, minLength, hint, showStrength, strengthLabels,
 }: PasswordInputProps) {

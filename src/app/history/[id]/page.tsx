@@ -17,6 +17,7 @@ import { buildItemJson, buildItemMarkdown, buildItemCsv } from '@/lib/historyExp
 import type { EstimationResult } from '@/lib/analyzer';
 import type { HistoryItem } from '@/types/history';
 
+// หน้ารายละเอียดผลประเมิน 1 รายการ (/history/[id]) — ใช้ ResultCard ตัวเดียวกับหน้า /app (hideToolbar)
 export default function HistoryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function HistoryDetailPage() {
   };
 
   // Map stored record → EstimationResult so we can reuse ResultCard
+  // แปลง HistoryItem (รูปแบบที่เก็บใน DB/ส่งมาจาก API) ให้ตรง shape กับ EstimationResult ที่ ResultCard ต้องการ
   const result: EstimationResult | null = item
     ? {
         sow: item.sow,
@@ -107,6 +109,7 @@ export default function HistoryDetailPage() {
     if (wasDark) html.classList.add('dark');
   };
 
+  // เหมือน handlePrintItem ในหน้า /history — เปิดหน้าต่างใหม่ + เขียน HTML ที่ประกอบไว้ล่วงหน้า + สั่งพิมพ์
   const handlePrintFull = () => {
     if (!item) return;
     const rel = calculateReliability({

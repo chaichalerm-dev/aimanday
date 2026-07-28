@@ -47,6 +47,8 @@ function MenuItem({
 
 const MENU_WIDTH = 224; // w-56
 
+// ปุ่ม dropdown รวมการ export ทั้งหมด (copy MD/JSON, download MD/JSON/CSV, print PDF)
+// render dropdown ผ่าน React Portal ไป document.body — กัน parent ที่มี overflow-hidden ตัด dropdown ขาด
 export function ExportMenu(handlers: ExportMenuHandlers) {
   const { t } = useLang();
   const [open, setOpen] = useState(false);
@@ -60,6 +62,8 @@ export function ExportMenu(handlers: ExportMenuHandlers) {
   useEffect(() => setMounted(true), []);
 
   // Position the menu relative to the trigger, flipping up if near the bottom
+  // คำนวณตำแหน่ง dropdown จากตำแหน่งปุ่ม trigger บนจอ (getBoundingClientRect) — เปิดขึ้นด้านบนอัตโนมัติ
+  // ถ้าพื้นที่ด้านล่างไม่พอ (spaceBelow < menuHeight) และด้านบนมีที่พอ, แล้ว clamp ซ้าย-ขวาไม่ให้หลุดจอ
   const updatePosition = () => {
     const btn = triggerRef.current;
     if (!btn) return;

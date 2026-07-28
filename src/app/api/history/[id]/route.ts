@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+// คืนผลประเมิน 1 รายการตาม id — ใช้ findFirst (ไม่ใช่ findUnique) เพราะต้อง filter ด้วย userId ด้วย
+// กันไม่ให้ผู้ใช้ A ดู record ของผู้ใช้ B ได้แค่เดา id ถูก
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } },
@@ -28,6 +30,8 @@ export async function GET(
   }
 }
 
+// ลบผลประเมิน 1 รายการ — ใช้ deleteMany (ไม่ใช่ delete ด้วย id เดี่ยว) เพราะ where ต้องมี userId
+// ด้วยเสมอ (deleteMany ไม่ throw ถ้าไม่เจอ แค่คืน count=0 ทำให้เช็ค "ไม่ใช่เจ้าของ" ได้ปลอดภัยกว่า)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } },

@@ -22,6 +22,7 @@ function getInitialLang(): Lang {
   return (localStorage.getItem('lang') as Lang) ?? 'th';
 }
 
+// Provider ครอบทั้งแอป — เก็บภาษาปัจจุบัน (th/en) + ชุด translations (t) ให้เข้าถึงผ่าน useLang()
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Lang>(getInitialLang);
 

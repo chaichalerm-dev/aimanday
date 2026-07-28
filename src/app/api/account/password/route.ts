@@ -7,6 +7,7 @@ import { checkRateLimit, rateLimitHeaders, getClientIp } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+// รับ PATCH { currentPassword, newPassword } → เปลี่ยนรหัสผ่านผู้ใช้ (ต้องยืนยันรหัสเดิมก่อนเสมอ)
 export async function PATCH(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {

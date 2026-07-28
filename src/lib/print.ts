@@ -7,6 +7,8 @@ import type { HistoryItem } from '@/types/history';
 // user-editable transcript (and an LLM that can be prompt-injected into echoing
 // it back verbatim) — this HTML is written straight into a same-origin window via
 // document.write, so any unescaped value here is a stored XSS vector.
+// escape อักขระพิเศษของ HTML (&, <, >, ", ') ก่อนแทรกลงในสตริง HTML
+// รับ value (ข้อความดิบจาก transcript/LLM) คืนค่าเป็น string ที่ปลอดภัยต่อการฝังใน HTML แล้ว
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -16,6 +18,9 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
+// สร้างเอกสาร HTML แบบสมบูรณ์ (สำหรับหน้าต่างใหม่ + สั่งพิมพ์) จากผลประเมิน 1 รายการ
+// รับ item (ข้อมูลผลประเมิน), t (translations), lang, reliability score/level/label
+// คืนค่าเป็น string HTML ทั้งหน้า (มี <style> ฝังในตัว ไม่พึ่งไฟล์ CSS ภายนอก)
 export function buildPrintHTML(
   item: HistoryItem,
   t: Translations,
@@ -28,9 +33,11 @@ export function buildPrintHTML(
   const dateStr = new Date(item.createdAt).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', {
     year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
+  // เลือกสีตาม level แบบ ternary ซ้อน: high=เขียว, medium=เหลือง, low=แดง (ทั้งตัวหนังสือและพื้นหลังโปร่งแสง)
   const relColor = reliabilityLevel === 'high' ? '#86efac' : reliabilityLevel === 'medium' ? '#fde047' : '#fca5a5';
   const relBg = reliabilityLevel === 'high' ? 'rgba(34,197,94,0.2)' : reliabilityLevel === 'medium' ? 'rgba(234,179,8,0.2)' : 'rgba(239,68,68,0.2)';
 
+  // render ข้อความ bilingual เป็น HTML string พร้อม escape กัน XSS แล้วห่อภาษาที่สองด้วย <span class="sub">
   const renderBilingual = (v: MaybeBilingual) => {
     const { primary, secondary } = pickText(v, lang);
     const escapedPrimary = escapeHtml(primary);

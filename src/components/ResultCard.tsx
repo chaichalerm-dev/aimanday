@@ -18,6 +18,8 @@ interface ResultCardProps {
   hideToolbar?: boolean;
 }
 
+// ป้ายแสดงคะแนนความน่าเชื่อถือ (high/medium/low) พร้อม tooltip อธิบายรายละเอียดคะแนนตอน hover/focus
+// รับ reliability (ผลคำนวณจาก calculateReliability) และ t (translations)
 function ReliabilityBadge({
   reliability,
   t,
@@ -27,6 +29,7 @@ function ReliabilityBadge({
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
+  // เลือกชุดสี/label ตาม level ปัจจุบัน (มี dark: variant คู่กันทุกสี ตามธรรมเนียมของโปรเจกต์)
   const cfg = {
     high:   { bg: 'bg-green-100 dark:bg-green-400/20',  text: 'text-green-700 dark:text-green-200',  ring: 'ring-green-300 dark:ring-green-400/40',  dot: 'bg-green-500 dark:bg-green-400',  label: t.reliabilityHigh },
     medium: { bg: 'bg-yellow-100 dark:bg-yellow-400/20', text: 'text-yellow-700 dark:text-yellow-200', ring: 'ring-yellow-300 dark:ring-yellow-400/40', dot: 'bg-yellow-500 dark:bg-yellow-400', label: t.reliabilityMedium },
@@ -80,6 +83,8 @@ function ReliabilityBadge({
   );
 }
 
+// การ์ดแสดงผลลัพธ์การประเมิน (Manday banner + SOW + ตารางโมดูล + assumptions + toolbar export)
+// ใช้ทั้งในหน้า /app (หลัง analyze เสร็จ) และหน้า /history/[id] (hideToolbar=true เพราะมี toolbar ของตัวเอง)
 export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
   const { t, lang } = useLang();
   const { sow, manday_estimate, modules, assumptions } = result;
@@ -89,6 +94,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
   const reliability = calculateReliability(result);
   const baseName = `manday-estimate-${manday_estimate.min}-${manday_estimate.max}`;
 
+  // ประกอบผลลัพธ์ทั้งหมดเป็น Markdown string เดียว (ใช้ทั้ง copy คลิปบอร์ดและ export .md)
   const buildMarkdown = (): string => {
     const lines: string[] = [];
     lines.push(`# Manday Estimate: ${manday_estimate.min}–${manday_estimate.max} ${lang === 'th' ? 'วันทำงาน' : 'mandays'}`);
@@ -109,6 +115,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
     return lines.join('\n');
   };
 
+  // ประกอบตารางโมดูลเป็น CSV string (แต่ละเซลล์ผ่าน csvSafeCell กัน formula injection)
   const buildCsv = (): string => {
     const header = [t.colModule, t.colDescription, t.colMandays];
     const rows = modules.map((m: Module) => [plainText(m.name, lang), plainText(m.description, lang), String(m.manday)]);
@@ -145,6 +152,7 @@ export function ResultCard({ result, hideToolbar = false }: ResultCardProps) {
     showToast(t.exportMarkdownSuccess, 'info');
   };
 
+  // สั่งพิมพ์หน้าปัจจุบัน — บังคับสลับเป็น light mode ชั่วคราวก่อนพิมพ์ (ให้อ่านง่ายบนกระดาษ) แล้วคืนค่าเดิม
   const handlePrint = () => {
     const html = document.documentElement;
     const wasDark = html.classList.contains('dark');

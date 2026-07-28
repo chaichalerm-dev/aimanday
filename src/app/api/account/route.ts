@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// คืนข้อมูลบัญชีของผู้ใช้ที่ login อยู่ (name, email, createdAt) — ใช้เติมฟอร์มหน้า /account ตอนโหลด
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
@@ -23,6 +24,7 @@ export async function GET() {
   return NextResponse.json(user);
 }
 
+// รับ PATCH { name?, email? } → แก้ชื่อ/อีเมลของผู้ใช้ที่ login อยู่ (แก้ทีละ field ได้)
 export async function PATCH(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {

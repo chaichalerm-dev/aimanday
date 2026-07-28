@@ -15,6 +15,7 @@ interface BilingualProps {
  * Renders transcript content with the primary language and a small
  * secondary translation beneath it (when available).
  */
+// component กลางไว้แสดงข้อความ 2 ภาษา — เรียกใช้แทนการ render string ตรง ๆ ทุกที่ที่เนื้อหามาจาก LLM/transcript
 export function Bilingual({
   value,
   className = '',

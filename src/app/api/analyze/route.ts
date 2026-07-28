@@ -28,6 +28,8 @@ function getGroq(): Groq {
 }
 
 // Public — guests can analyze too, but the result is only saved to history when logged in.
+// รับ POST { transcript, audioName } → stream คำตอบจาก LLM กลับเป็น plain text ทีละ chunk
+// เมื่อ stream จบจะ parse ผลลัพธ์แล้วบันทึกลง DB (เฉพาะกรณี login อยู่)
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
@@ -69,6 +71,8 @@ export async function POST(request: NextRequest) {
 
     const encoder = new TextEncoder();
 
+    // ReadableStream ทำให้ response ส่งกลับไปหา client ได้ทีละ chunk แทนที่จะรอ LLM ตอบครบก่อน
+    // (ผู้ใช้เห็นข้อความ "พิมพ์" ขึ้นมาเรื่อย ๆ เหมือน ChatGPT แทนที่จะรอเฉย ๆ)
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -83,6 +87,7 @@ export async function POST(request: NextRequest) {
             ],
           });
 
+          // สะสมข้อความทั้งหมดไว้ใน accumulated (ไว้ parse ทีเดียวตอนจบ) พร้อมส่งแต่ละ chunk ออกไปทันที
           let accumulated = '';
           for await (const chunk of groqStream) {
             const text = chunk.choices[0]?.delta?.content ?? '';

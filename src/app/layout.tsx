@@ -59,6 +59,8 @@ export const metadata: Metadata = {
   },
 };
 
+// Root layout ครอบทุกหน้าในแอป — ใส่ font, provider ทั้งหมด (Auth/Theme/Language/Toast), BottomNav
+// และ inline script ตั้งค่า dark mode ก่อน paint แรก (กันจอกะพริบ)
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Set by src/middleware.ts on every request — required so this inline script is
   // allowed to run under the nonce-based CSP (script-src has no 'unsafe-inline').

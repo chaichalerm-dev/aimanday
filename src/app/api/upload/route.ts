@@ -8,6 +8,7 @@ const ALLOWED_EXTENSIONS = new Set(['.mp3', '.wav', '.m4a']);
 const MAX_FILE_SIZE_MB = 25;
 
 // Public — guests can transcribe too. Only saving to history requires login (see /api/analyze).
+// รับ POST multipart/form-data (field "audio") → ตรวจนามสกุล/ขนาดไฟล์ → ถอดเสียงแล้วคืน { transcript }
 export async function POST(request: NextRequest) {
   // Rate limit: 10 STT requests per minute per IP
   const ip = getClientIp(request);

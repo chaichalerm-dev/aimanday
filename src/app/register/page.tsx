@@ -48,6 +48,7 @@ const content = {
   },
 };
 
+// หน้าสมัครสมาชิก — สมัครผ่าน /api/auth/register แล้ว auto sign-in ต่อทันที (ไม่ต้อง login ซ้ำ)
 export default function RegisterPage() {
   const { lang } = useLang();
   const c = content[lang];
@@ -60,6 +61,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // validate รหัสผ่านตรงกันฝั่ง client ก่อน แล้วค่อยสมัครผ่าน API → สมัครสำเร็จแล้ว sign-in ต่อให้อัตโนมัติ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);

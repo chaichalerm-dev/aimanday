@@ -27,13 +27,18 @@ function formatDate(iso: string, lang: 'th' | 'en'): string {
 }
 
 // Smart page range: always show first, last, and ±1 around current
+// รับ current (index หน้าปัจจุบัน, เริ่มที่ 0), total (จำนวนหน้าทั้งหมด)
+// คืนค่าอาเรย์ของเลขหน้าที่จะโชว์ปุ่ม + จุดไข่ปลา 'ellipsis' คั่นช่วงที่ข้าม
+// เช่น total=20, current=10 → [0, 'ellipsis', 9,10,11, 'ellipsis', 19]
 function getPageNumbers(current: number, total: number): (number | 'ellipsis')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i); // หน้าน้อย โชว์ครบไม่ต้องย่อ
+  // เก็บเฉพาะหน้าแรก, หน้าสุดท้าย, และหน้าติดกับหน้าปัจจุบัน (current-1, current, current+1)
   const candidates = [0, total - 1, current, current - 1, current + 1]
     .filter(n => n >= 0 && n < total);
   const sorted = Array.from(new Set(candidates)).sort((a, b) => a - b);
   const result: (number | 'ellipsis')[] = [];
   sorted.forEach((n, i) => {
+    // ถ้าเลขหน้าห่างจากตัวก่อนหน้ามากกว่า 1 แปลว่ามีช่วงที่ถูกข้าม → แทรก ellipsis
     if (i > 0 && n - sorted[i - 1] > 1) result.push('ellipsis');
     result.push(n);
   });
@@ -50,6 +55,7 @@ const RELIABILITY_CFG = {
 // Lets the page render instantly on revisit while it refreshes in the background.
 let historyCache: HistoryItem[] | null = null;
 
+// หน้ารายการประวัติ (/history) — ค้นหา, แบ่งหน้า, ลบ, ดูรายละเอียด, export, re-analyze
 export default function HistoryPage() {
   const { t, lang } = useLang();
   const { showToast } = useToast();
@@ -177,6 +183,7 @@ export default function HistoryPage() {
     showToast(t.exportCsvSuccess, 'info');
   };
 
+  // เปิดหน้าต่างใหม่ (window.open) เขียน HTML ที่ประกอบไว้ล่วงหน้าลงไปแล้วสั่งพิมพ์ตอนโหลดเสร็จ
   const handlePrintItem = (item: HistoryItem) => {
     const rel = calculateReliability({
       sow: item.sow,
@@ -197,6 +204,7 @@ export default function HistoryPage() {
     }
   };
 
+  // เก็บ transcript เดิมไว้ใน sessionStorage แล้วเด้งไปหน้า /app ให้ page.tsx อ่านมาพรีฟิลตอนโหลด
   const handleReAnalyze = (item: HistoryItem) => {
     sessionStorage.setItem(
       'reanalyze_prefill',

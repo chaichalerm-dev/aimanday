@@ -1,5 +1,7 @@
 // Browser file download helpers — trigger a client-side file save
 
+// สั่งดาวน์โหลดไฟล์ฝั่ง browser โดยสร้าง Blob แล้วจำลองคลิกลิงก์ดาวน์โหลด
+// รับ filename, content (เนื้อหาไฟล์), mime (MIME type) ไม่คืนค่า (side effect: ไฟล์ถูกเซฟ)
 export function downloadFile(filename: string, content: string, mime: string) {
   // Prepend BOM for UTF-8 so Excel / editors read Thai characters correctly
   const blob = new Blob(['﻿' + content], { type: `${mime};charset=utf-8;` });
@@ -24,6 +26,9 @@ export function downloadCsv(baseName: string, csv: string) {
 }
 
 // Sanitize a filename: strip extension, replace unsafe chars
+// แปลงชื่อไฟล์ (เช่น "บันทึกประชุม.mp3") ให้เป็นชื่อไฟล์ปลอดภัยสำหรับ export
+// รับ name คืนค่า string: ตัดนามสกุลออก (\.[^.]+$) แล้วแทนอักขระที่ไม่ใช่ตัวอักษร/เลข/ไทย ([^\w฀-๿-])
+// ด้วย "_" — ๐-๙฀-๿ คือช่วง unicode ของอักษรไทยทั้งหมด กันชื่อไทยโดนแทนที่จนว่างเปล่า
 export function safeBaseName(name: string): string {
   return name.replace(/\.[^.]+$/, '').replace(/[^\w฀-๿-]+/g, '_') || 'estimation';
 }

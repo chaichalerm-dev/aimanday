@@ -17,6 +17,7 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue>({ showToast: () => {} });
 
 // --- Individual toast ---
+// Toast แต่ละใบ — คุม animation เข้า/ออกด้วย opacity+transform ผ่าน setTimeout (ไม่ใช่ CSS transition class)
 function Toast({ toast, onRemove }: { toast: ToastItem; onRemove: (id: string) => void }) {
   const [visible, setVisible] = useState(false);
 
@@ -80,6 +81,7 @@ function Toast({ toast, onRemove }: { toast: ToastItem; onRemove: (id: string) =
 }
 
 // --- Provider (includes container) ---
+// Provider ครอบทั้งแอป — เก็บ list ของ toast ที่กำลังแสดงอยู่ + ฟังก์ชัน showToast() ให้เรียกจากที่ไหนก็ได้
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 

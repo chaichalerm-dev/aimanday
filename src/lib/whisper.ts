@@ -3,6 +3,8 @@ import Groq from 'groq-sdk';
 // Lazy singleton — created on first use, not at module import.
 // Prevents the SDK from throwing at build time when GROQ_API_KEY is absent.
 let groqClient: Groq | null = null;
+// คืน Groq client instance เดียว (สร้างครั้งแรกที่เรียกใช้เท่านั้น — lazy singleton)
+// ไม่รับ input, คืน Groq instance หรือ throw ถ้าไม่มี GROQ_API_KEY
 function getGroq(): Groq {
   if (!process.env.GROQ_API_KEY) {
     throw new Error('GROQ_API_KEY is not configured');
@@ -13,6 +15,8 @@ function getGroq(): Groq {
   return groqClient;
 }
 
+// ถอดเสียงไฟล์ audio เป็นข้อความผ่าน Groq's Whisper API (speech-to-text)
+// รับ audioFile (File ที่ผู้ใช้อัปโหลด) คืนค่าเป็น string ข้อความที่ถอดได้
 export async function transcribeAudio(audioFile: File): Promise<string> {
   const arrayBuffer = await audioFile.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);

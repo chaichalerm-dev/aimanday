@@ -42,6 +42,7 @@ const content = {
   },
 };
 
+// ฟอร์ม login จริง (แยกจาก LoginPage เพราะ useSearchParams ต้องอยู่ใต้ <Suspense>)
 function LoginForm() {
   const { lang } = useLang();
   const c = content[lang];
@@ -54,6 +55,8 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ส่ง credentials ไปให้ NextAuth ตรวจ (redirect: false ให้เราคุม flow เอง)
+  // สำเร็จ → พาไป callbackUrl (path เดิมที่ผู้ใช้พยายามเข้าก่อนโดนเด้งมา login)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);

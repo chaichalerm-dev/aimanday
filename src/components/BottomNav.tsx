@@ -55,6 +55,7 @@ const NAV_ITEMS: NavItem[] = [
 // Marketing/auth pages aren't part of the app's mobile tab flow — no bottom bar there.
 const HIDDEN_PATHS = ['/', '/login', '/register'];
 
+// แถบนำทางล่างสุด เฉพาะจอมือถือ/แท็บเล็ต (md:hidden) — ซ่อนในหน้า marketing/auth ตาม HIDDEN_PATHS
 export function BottomNav() {
   const pathname = usePathname();
   const { t } = useLang();
@@ -114,6 +115,7 @@ export function BottomNav() {
 
 // Reserves the space BottomNav occupies on mobile — skipped on the same pages BottomNav hides on,
 // otherwise those pages get a blank gap at the bottom of the viewport.
+// เพิ่ม padding-bottom กันเนื้อหาโดน BottomNav บัง (เฉพาะหน้าที่ BottomNav แสดงอยู่จริง)
 export function MobileNavSpacer({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hasBottomNav = !HIDDEN_PATHS.includes(pathname);

@@ -106,6 +106,7 @@ const content = {
   },
 };
 
+// หน้าแรก (/) — marketing/landing page ล้วน ไม่มี logic ซับซ้อน เนื้อหาทั้งหมดมาจาก object content[lang] ด้านบน
 export default function LandingPage() {
   const { lang } = useLang();
   const c = content[lang];

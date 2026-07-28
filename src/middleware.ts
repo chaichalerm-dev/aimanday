@@ -7,6 +7,8 @@ const isDev = process.env.NODE_ENV === 'development';
 // /history and /account still require login since both are meaningless without an account.
 // (API routes with the same prefixes, e.g. /api/history, are NOT covered here — they
 // enforce their own getServerSession() check as defense-in-depth; see route handlers.)
+// เช็คว่า path นี้ต้อง login ก่อนเข้าหรือไม่ (รับ pathname คืนค่า boolean)
+// เฉพาะหน้า UI เท่านั้น — API route (เช่น /api/history) เช็ค session เองใน route handler
 function isProtectedPage(pathname: string): boolean {
   return (
     pathname === '/history' || pathname.startsWith('/history/') ||
@@ -18,6 +20,8 @@ function isProtectedPage(pathname: string): boolean {
 // <script> (ours in layout.tsx, or Next's own hydration scripts) only runs if it
 // carries this nonce. 'strict-dynamic' lets scripts loaded BY a nonce'd script run
 // too; browsers too old to understand it fall back to the 'self' allowlist instead.
+// สร้างค่า header Content-Security-Policy จาก nonce ที่สุ่มมาต่อ request
+// รับ nonce (string) คืนค่าเป็น CSP string เดียว (join ด้วย "; ")
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
@@ -35,18 +39,23 @@ function buildCsp(nonce: string): string {
   ].join('; ');
 }
 
+// รันทุก request (ตาม matcher ด้านล่าง) — ทำ 2 หน้าที่: (1) กันหน้า protected ไม่ให้เข้าถ้าไม่ login
+// (2) สร้าง CSP nonce ใหม่ทุกครั้งแล้วแปะเป็น request header (ให้ layout อ่านไปใช้) + response header
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (isProtectedPage(pathname)) {
+    // getToken() เป็น edge-compatible ไม่ต้องพึ่ง authOptions/bcrypt/prisma (ต่างจาก getServerSession)
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
+      // ไม่มี token → เด้งไป /login พร้อมจำ path เดิมไว้ใน callbackUrl (login เสร็จเด้งกลับมาที่นี่)
       const signInUrl = new URL('/login', request.url);
       signInUrl.searchParams.set('callbackUrl', `${pathname}${search}`);
       return NextResponse.redirect(signInUrl);
     }
   }
 
+  // สุ่ม nonce ใหม่ทุก request แล้วตัด "-" ออก (ต้องเป็นค่าที่คาดเดาไม่ได้ ป้องกัน CSP bypass)
   const nonce = crypto.randomUUID().replace(/-/g, '');
 
   const requestHeaders = new Headers(request.headers);

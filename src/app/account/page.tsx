@@ -65,6 +65,7 @@ const content = {
 
 type Tab = 'profile' | 'password';
 
+// หน้าจัดการบัญชี (/account) — แท็บโปรไฟล์ (ชื่อ/อีเมล) และแท็บเปลี่ยนรหัสผ่าน แยกฟอร์ม/state กัน
 export default function AccountPage() {
   const { lang } = useLang();
   const c = content[lang];
@@ -96,6 +97,8 @@ export default function AccountPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // บันทึกชื่อ/อีเมลผ่าน PATCH /api/account แล้วเรียก updateSession() ให้ token/Header อัปเดตตาม
+  // ทันที (ไม่งั้นต้อง login ใหม่ header ถึงจะเห็นอีเมลใหม่ — ดู jwt callback ใน lib/auth.ts)
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileError(null);
@@ -120,6 +123,7 @@ export default function AccountPage() {
     }
   };
 
+  // เปลี่ยนรหัสผ่านผ่าน PATCH /api/account/password (ต้องส่ง currentPassword ไปให้ server ตรวจก่อนเสมอ)
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError(null);

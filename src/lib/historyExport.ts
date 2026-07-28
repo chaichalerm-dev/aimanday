@@ -2,6 +2,8 @@ import { plainText } from './bilingual';
 import type { HistoryItem } from '@/types/history';
 import type { Translations } from './i18n';
 
+// แปลง HistoryItem (record จาก DB) ให้เป็น object รูปแบบเดียวกับที่ export เป็น JSON
+// รับ item คืนค่า object ที่ตัด field ภายใน (id, userId ฯลฯ) ออก เหลือแค่ข้อมูลผลประเมิน
 export function buildItemJson(item: HistoryItem) {
   return {
     audioName: item.audioName,
@@ -13,6 +15,8 @@ export function buildItemJson(item: HistoryItem) {
   };
 }
 
+// สร้างเนื้อหา Markdown จาก HistoryItem 1 รายการ (สำหรับ copy/export เป็น .md)
+// รับ item, t (translations), lang คืนค่าเป็น markdown string เดียว (join ด้วย \n)
 export function buildItemMarkdown(item: HistoryItem, t: Translations, lang: 'th' | 'en'): string {
   const total = item.modules.reduce((s, m) => s + m.manday, 0);
   const lines: string[] = [
@@ -36,10 +40,14 @@ export function buildItemMarkdown(item: HistoryItem, t: Translations, lang: 'th'
 // with =, +, -, @, tab, or CR is interpreted as a formula by Excel/Sheets when the
 // file is later opened — prefix with a straight quote to force it to plain text
 // (the well-known CSV/formula-injection mitigation).
+// รับ value (เนื้อหา 1 เซลล์) คืนค่าเดิม หรือเติม ' นำหน้าถ้าขึ้นต้นด้วยอักขระที่ Excel ตีความเป็นสูตร
+// regex /^[=+\-@\t\r]/ เช็คว่าตัวอักษรตัวแรกของ string เป็นหนึ่งใน = + - @ tab หรือ CR หรือไม่
 export function csvSafeCell(value: string): string {
   return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
 }
 
+// สร้างเนื้อหา CSV จาก HistoryItem 1 รายการ (ตาราง module + total)
+// รับ item, t, lang คืนค่าเป็น csv string (แต่ละเซลล์ครอบด้วย "" และ escape " ซ้ำ)
 export function buildItemCsv(item: HistoryItem, t: Translations, lang: 'th' | 'en'): string {
   const total = item.modules.reduce((s, m) => s + m.manday, 0);
   return [

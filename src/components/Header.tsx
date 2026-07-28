@@ -8,6 +8,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLang } from '@/contexts/LanguageContext';
 import { LogoMark } from '@/components/LogoMark';
 
+// แถบนำทางบนสุด (fixed) — โลโก้ + nav link + สลับภาษา/ธีม + สถานะ login (avatar/ปุ่ม logout หรือปุ่ม login)
 export function Header() {
   const { theme, toggleTheme } = useTheme();
   const { lang, t, toggleLang } = useLang();
@@ -16,6 +17,8 @@ export function Header() {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const logoutRef = useRef<HTMLDivElement>(null);
 
+  // เรียกตอนผู้ใช้ยืนยัน logout ในกล่อง popover — ถ้า signOut() ล้มเหลว (เช่น dev server รีสตาร์ทกลางทาง)
+  // ให้ hard-redirect ไปหน้าแรกแทนเพื่อไม่ให้ UI ค้าง
   const handleSignOut = async () => {
     try {
       await signOut({ callbackUrl: '/' });

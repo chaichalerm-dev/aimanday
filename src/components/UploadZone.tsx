@@ -18,6 +18,7 @@ export function UploadZone({ onFileSelect, onRemove, disabled, selectedFile }: U
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // ตรวจนามสกุลไฟล์ก่อนส่งต่อ (client-side เท่านั้น — server ยัง validate ซ้ำใน /api/upload เสมอ)
   const validate = (file: File): boolean => {
     const ext = '.' + (file.name.split('.').pop() ?? '').toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(ext)) {

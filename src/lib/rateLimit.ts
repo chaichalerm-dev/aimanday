@@ -24,6 +24,9 @@ export interface RateLimitResult {
   resetAt: number; // unix ms
 }
 
+// เช็ค/นับจำนวนครั้งที่ identifier (เช่น "analyze:1.2.3.4") เรียกภายใน window ปัจจุบัน
+// รับ identifier, limit (จำนวนครั้งสูงสุด), windowMs (ความยาว window เป็น ms)
+// คืนค่า RateLimitResult บอกว่าอนุญาตไหม เหลือกี่ครั้ง และ reset เมื่อไหร่
 export function checkRateLimit(
   identifier: string,
   limit = 10,
@@ -32,6 +35,7 @@ export function checkRateLimit(
   const now = Date.now();
   const entry = store.get(identifier);
 
+  // ไม่มี entry เดิม หรือ window เก่าหมดอายุแล้ว → เริ่มนับใหม่
   if (!entry || now > entry.resetAt) {
     const resetAt = now + windowMs;
     store.set(identifier, { count: 1, resetAt });
@@ -58,6 +62,8 @@ export function rateLimitHeaders(result: RateLimitResult): Record<string, string
   return headers;
 }
 
+// หา IP ของ client จาก request headers เพื่อใช้เป็น key ของ rate limit
+// รับ request (Request object) คืนค่าเป็น IP string (fallback '127.0.0.1' ถ้าหาไม่เจอ)
 export function getClientIp(request: Request): string {
   // `x-forwarded-for`'s left-most entry is client-supplied and trivially spoofed
   // (an attacker can send a fresh random value per request to dodge the rate

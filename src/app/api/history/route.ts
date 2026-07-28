@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 // Always fetch fresh from DB — never prerender/cache at build time
 export const dynamic = 'force-dynamic';
 
+// คืนรายการผลประเมินทั้งหมดของผู้ใช้ที่ login อยู่ (เรียงใหม่สุดก่อน, จำกัด 200 รายการ)
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
